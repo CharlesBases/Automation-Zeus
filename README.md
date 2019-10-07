@@ -5,7 +5,7 @@
 ## 导航
 * [Zeus](https://github.com/CharlesBases/Automation-zeus) - - - - - - - - - - - - - - - - - - - - - - MySQL 表结构自动生成 Golang 结构体
 * [Hera](https://github.com/CharlesBases/Automation-hera) - - - - - - - - - - - - - - - - - - - - - - Golang 结构体生成 Json 文档
-* [Hephaestus](https://github.com/CharlesBases/Automation)
+* [Hephaestus](https://github.com/CharlesBases/Automation-hephaestus) - - - - - - - - - - - - - - - - 接口文档生成
 * [Poseidon](https://github.com/CharlesBases/Automation)
 * [Hestia](https://github.com/CharlesBases/Automation)
 * [Hades](https://github.com/CharlesBases/Automation)
@@ -16,7 +16,7 @@
 * [Aphrodite](https://github.com/CharlesBases/Automation)
 * [Athena](https://github.com/CharlesBases/Automation)
 
-# Zeus
+# Automation-zeus
 根据MySql表结构生成Golang结构体，支持同一个库下多表创建，支持json标签，gorm标签，支持文件追加，支持结构体更新。需要使用gofmt代码格式化工具。
 
 ## 参数说明
