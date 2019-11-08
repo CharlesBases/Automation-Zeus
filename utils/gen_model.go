@@ -28,11 +28,11 @@ func(table *{{.StructName}}) Select(ID int64) error {
 }
 
 func(table *{{.StructName}}) Update(ID int64) error {
-	return orm.Gorm().Table(table.Table()).Where("id = ? AND is_deleted = 0", ID).First(table).Error
+	return orm.Gorm().Table(table.Table()).Where("id = ? AND is_deleted = 0", ID).Update(table).Limit(1).Error
 }
 
 func(table *{{.StructName}}) Delete(ID int64) error {
-	return orm.Gorm().Table(table.Table()).Where("id = ? AND is_deleted = 0", ID).Updates(table).Error
+	return orm.Gorm().Table(table.Table()).Where("id = ? AND is_deleted = 0", ID).Updates(table).Limit(1).Error
 }
 
 `
