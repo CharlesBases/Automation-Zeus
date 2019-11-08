@@ -7,12 +7,12 @@ var (
 )
 
 var mysqltype = map[string]string{
-	"int":        "int",
-	"integer":    "int",
-	"tinyint":    "int",
-	"smallint":   "int",
-	"mediumint":  "int",
-	"bit":        "int",
+	"int":        "int64",
+	"integer":    "int64",
+	"tinyint":    "int64",
+	"smallint":   "int64",
+	"mediumint":  "int64",
+	"bit":        "int64",
 	"bool":       "bool",
 	"bigint":     "int64",
 	"enum":       "string",
@@ -40,15 +40,16 @@ var mysqltype = map[string]string{
 }
 
 type GlobalConfig struct {
-	Package  string            // 生成结构体文件包名
-	Filepath string            // 生成结构体文件路径
-	Variable map[string]string // var
-	Import   map[string]string // import    导入路径:别名
-	Database *Database         //
-	Structs  *[]Struct         // 结构体
-	Update   bool
-	Json     bool
-	Gorm     bool
+	Package     string            // 生成结构体文件包名
+	PackagePath string            // 生成结构体文件包路径
+	Filepath    string            // 生成结构体文件路径
+	Variable    map[string]string // var
+	Import      map[string]string // import    导入路径:别名
+	Database    *Database         //
+	Structs     *[]Struct         // 结构体
+	Update      bool
+	Json        bool
+	Gorm        bool
 }
 
 type Database struct {

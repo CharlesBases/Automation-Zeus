@@ -94,9 +94,9 @@ func (config *GlobalConfig) parseField(tf *TableField) StructField {
 
 func (config *GlobalConfig) parseType(tf *TableField) string {
 	builder := strings.Builder{}
-	if strings.HasSuffix(tf.Column, "unsigned") {
-		builder.WriteString("u")
-	}
+	// if strings.HasSuffix(tf.Column, "unsigned") {
+	// 	builder.WriteString("u")
+	// }
 	gotype := mysqltype[tf.Type]
 	if strings.Contains(gotype, "time.Time") {
 		config.Import[`"time"`] = ""

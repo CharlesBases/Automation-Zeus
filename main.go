@@ -1,4 +1,4 @@
-package Automation_zeus
+package main
 
 import (
 	"flag"
@@ -7,6 +7,7 @@ import (
 	"go/token"
 	"os"
 	"os/exec"
+	"path"
 	"path/filepath"
 	"strings"
 	"time"
@@ -19,25 +20,28 @@ type Config struct {
 }
 
 var (
-	db     = flag.String("d", "root:password@tcp(127.0.0.1:3306)/mysql", `database`)
-	table  = flag.String("t", "", `table.multiple files are divided by ","`)
-	file   = flag.String("f", "./model.go", `generate model file name`)
-	update = flag.Bool("u", false, `update struct`)
-	json   = flag.Bool("j", true, `json tag`)
-	gorm   = flag.Bool("g", true, `gorm tag`)
+	db      = flag.String("d", "root:password@tcp(127.0.0.1:3306)/mysql", `database`)
+	table   = flag.String("t", "", `table.multiple files are divided by ","`)
+	genPath = flag.String("p", ".", `generate file path`)
+	update  = flag.Bool("u", false, `update struct`)
+	json    = flag.Bool("j", true, `json tag`)
+	gorm    = flag.Bool("g", true, `gorm tag`)
 )
 
 func main() {
 	flag.Parse()
 
-	abspath, _ := filepath.Abs(*file)
+	abspath, _ := filepath.Abs(*genPath)
+
+	os.MkdirAll(abspath, 0755)
 
 	config := &Config{
 		GlobalConfig: utils.GlobalConfig{
-			Package:  filepath.Base(filepath.Dir(abspath)),
-			Filepath: abspath,
-			Variable: map[string]string{"schema": fmt.Sprintf(`"%s"`, parse_schema(*db))},
-			Import:   make(map[string]string, 0),
+			Package:     filepath.Base(abspath),
+			PackagePath: abspath,
+			Filepath:    abspath,
+			Variable:    map[string]string{"schema": fmt.Sprintf(`"%s"`, parse_schema(*db))},
+			Import:      make(map[string]string, 0),
 			Database: &utils.Database{
 				IP:     *db + "?charset=utf8mb4&parseTime=True&loc=Local",
 				Schema: parse_schema(*db),
@@ -86,12 +90,14 @@ func main() {
 		}
 	}
 
-	// 生成文件
-	modelfile := config.createModel()
-	config.GenModel(modelfile)
-	modelfile.Close()
+	for _, Struct := range *config.Structs {
+		structfile := config.create(path.Join(config.PackagePath, fmt.Sprintf("%s.go", Struct.StructName)))
+		config.GenModel(&Struct, structfile)
 
-	config.gofmt(config.Filepath)
+		structfile.Close()
+	}
+
+	config.gofmt()
 
 	fmt.Print(fmt.Sprintf(`[%s]------`, time.Now().Format("2006-01-02 15:04:05")))
 	fmt.Printf("%c[%d;%d;%dmcomplete !%c[0m\n", 0x1B, 0 /*字体*/, 0 /*背景*/, 35 /*前景*/, 0x1B)
@@ -104,6 +110,21 @@ func parse_schema(ip string) (schema string) {
 		schema = ip[start+1:]
 	}
 	return
+}
+
+func (config *Config) create(filepath string) *os.File {
+	os.RemoveAll(path.Join(config.PackagePath, fmt.Sprintf("%s.go", filepath)))
+
+	fmt.Print(fmt.Sprintf(`[%s]--------`, time.Now().Format("2006-01-02 15:04:05")))
+	fmt.Printf("%c[%d;%d;%dmcreate model file %s...%c[0m\n", 0x1B, 0 /*字体*/, 0 /*背景*/, 36 /*前景*/, path.Base(filepath), 0x1B)
+	if file, err := os.OpenFile(filepath, os.O_RDWR|os.O_CREATE, 0755); err != nil {
+		fmt.Print(fmt.Sprintf(`[%s]--------`, time.Now().Format("2006-01-02 15:04:05")))
+		fmt.Printf("%c[%d;%d;%dmopen file error: %s%c[0m\n", 0x1B, 0 /*字体*/, 0 /*背景*/, 31 /*前景*/, err.Error(), 0x1B)
+		os.Exit(0)
+	} else {
+		return file
+	}
+	return nil
 }
 
 func (config *Config) createModel() *os.File {
@@ -121,8 +142,8 @@ func (config *Config) createModel() *os.File {
 	return nil
 }
 
-func (config *Config) gofmt(filepath string) {
-	cmd := exec.Command("gofmt", "-l", "-w", "-s", filepath)
+func (config *Config) gofmt() {
+	cmd := exec.Command("gofmt", "-l", "-w", "-s", config.PackagePath)
 	err := cmd.Run()
 	if err != nil {
 		fmt.Print(fmt.Sprintf(`[%s]------`, time.Now().Format("2006-01-02 15:04:05")))

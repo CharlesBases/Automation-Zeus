@@ -5,25 +5,40 @@ import (
 	"html/template"
 	"io"
 	"os"
-	"path/filepath"
 	"strings"
 	"time"
 )
 
 const modeltemplate = `{{package}}
-{{range $structIndex, $struct := .Structs}}
+
 type {{.StructName}} struct {                               {{range $fieldIndex, $field := .Fields}}
 	{{.Name}}   {{.Type}}   {{.Tag}}    // {{.Comment}}     {{end}}
 }
 
 func (*{{.StructName}}) Table() string {
-	return schema + ".{{tablename .StructName}}"
+	return "{{tablename .StructName}}"
 }
-{{end}}
+
+func(table *{{.StructName}}) Insert() error {
+	return orm.Gorm().Table(table.Table()).Create(table).Error
+}
+
+func(table *{{.StructName}}) Select(ID int64) error {
+	return orm.Gorm().Table(table.Table()).Where("id = ? AND is_deleted = 0", ID).First(table).Error
+}
+
+func(table *{{.StructName}}) Update(ID int64) error {
+	return orm.Gorm().Table(table.Table()).Where("id = ? AND is_deleted = 0", ID).First(table).Error
+}
+
+func(table *{{.StructName}}) Delete(ID int64) error {
+	return orm.Gorm().Table(table.Table()).Where("id = ? AND is_deleted = 0", ID).Updates(table).Error
+}
+
 `
 
-func (config *GlobalConfig) GenModel(wr io.Writer) {
-	temp := template.New(filepath.Base(config.Filepath))
+func (config *GlobalConfig) GenModel(Struct *Struct, wr io.Writer) {
+	temp := template.New(Struct.StructName)
 	temp.Funcs(template.FuncMap{
 		"package": func() template.HTML {
 			builder := strings.Builder{}
@@ -31,22 +46,18 @@ func (config *GlobalConfig) GenModel(wr io.Writer) {
 			builder.WriteString(fmt.Sprintf("package %s\n\n", config.Package))
 			// import
 			if config.Import != nil {
-				builder.WriteString(fmt.Sprintf("import (\n%s)\n\n", func() string {
+				builder.WriteString(fmt.Sprintf("import (\n%s)", func() string {
 					importBuilder := strings.Builder{}
 					for key, val := range config.Import {
 						importBuilder.WriteString(fmt.Sprintf("\t%s %s\n", val, key))
 					}
+
+					importBuilder.WriteString("\t")
+					importBuilder.WriteString(fmt.Sprintf(`"gitlab.ifchange.com/bot/gokitcommon/orm"`))
+					importBuilder.WriteString("\n")
 					return importBuilder.String()
 				}()))
 			}
-			// var
-			builder.WriteString(fmt.Sprintf("var (\n%s)", func() string {
-				varBuilder := strings.Builder{}
-				for key, val := range config.Variable {
-					varBuilder.WriteString(fmt.Sprintf("\t%s = %s\n", key, val))
-				}
-				return varBuilder.String()
-			}()))
 			return template.HTML(builder.String())
 		},
 		"tablename": ensnake,
@@ -57,5 +68,5 @@ func (config *GlobalConfig) GenModel(wr io.Writer) {
 		fmt.Printf("%c[%d;%d;%dmgen model error: %s%c[0m\n", 0x1B, 0 /*字体*/, 0 /*背景*/, 31 /*前景*/, err.Error(), 0x1B)
 		os.Exit(1)
 	}
-	modelTemplate.Execute(wr, config)
+	modelTemplate.Execute(wr, Struct)
 }
