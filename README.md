@@ -3,18 +3,18 @@
 代码自动化
 
 ## 导航
-* [Zeus](https://github.com/CharlesBases/Automation-zeus) - - - - - - - - - - - - - - - - - - - - - - MySQL 表结构自动生成 Golang 结构体
-* [Hera](https://github.com/CharlesBases/Automation-hera) - - - - - - - - - - - - - - - - - - - - - - Golang 结构体生成 Json 文档
-* [Hephaestus](https://github.com/CharlesBases/Automation-hephaestus) - - - - - - - - - - - - - - - - 接口文档生成
-* [Poseidon](https://github.com/CharlesBases/Automation)
-* [Hestia](https://github.com/CharlesBases/Automation)
-* [Hades](https://github.com/CharlesBases/Automation)
-* [Hermes](https://github.com/CharlesBases/Automation)
-* [Ares](https://github.com/CharlesBases/Automation)
-* [Artemis](https://github.com/CharlesBases/Automation)
-* [Apollo](https://github.com/CharlesBases/Automation)
-* [Aphrodite](https://github.com/CharlesBases/Automation)
-* [Athena](https://github.com/CharlesBases/Automation)
+* [Zeus](https://github.com/CharlesBases/Automation-Zeus) - - - - - - - - - - - - - - - - - - - - - - MySQL 表结构自动生成 Golang 结构体
+* [Hera](https://github.com/CharlesBases/Automation-Hera) - - - - - - - - - - - - - - - - - - - - - - Golang 结构体生成 Json 文档
+* [Hephaestus](https://github.com/CharlesBases/Automation-Hephaestus)
+* [Poseidon](https://github.com/CharlesBases/Automation-Poseidon) - - - - - - - - - - - - - - - - - - - 根据接口生成 RPC 文件
+* [Hestia](https://github.com/CharlesBases/Automation-Hestia)
+* [Hades](https://github.com/CharlesBases/Automation-Hades)
+* [Hermes](https://github.com/CharlesBases/Automation-Hermes)
+* [Ares](https://github.com/CharlesBases/Automation-Ares)
+* [Artemis](https://github.com/CharlesBases/Automation-Artemis)
+* [Apollo](https://github.com/CharlesBases/Automation-Apollo)
+* [Aphrodite](https://github.com/CharlesBases/Automation-Aphrodite)
+* [Athena](https://github.com/CharlesBases/Automation-Athena)
 
 # Automation-zeus
 根据MySql表结构生成Golang结构体，支持同一个库下多表创建，支持json标签，gorm标签，支持文件追加，支持结构体更新。需要使用gofmt代码格式化工具。
