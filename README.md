@@ -16,7 +16,7 @@
 * [Aphrodite](https://github.com/CharlesBases/Automation-Aphrodite)
 * [Athena](https://github.com/CharlesBases/Automation-Athena)
 
-# Automation-zeus
+# Automation-Zeus
 根据MySql表结构生成Golang结构体，支持同一个库下多表创建，支持json标签，gorm标签，支持文件追加，支持结构体更新。需要使用gofmt代码格式化工具。
 
 ## 参数说明
