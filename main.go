@@ -112,7 +112,7 @@ func (config *Config) create(filepath string) *os.File {
 
 	fmt.Print(fmt.Sprintf(`[%s]--------`, time.Now().Format("2006-01-02 15:04:05")))
 	fmt.Printf("%c[%d;%d;%dmcreate model file %s...%c[0m\n", 0x1B, 0 /*字体*/, 0 /*背景*/, 36 /*前景*/, path.Base(filepath), 0x1B)
-	if file, err := os.OpenFile(filepath, os.O_RDWR|os.O_CREATE, 0755); err != nil {
+	if file, err := os.OpenFile(filepath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0755); err != nil {
 		fmt.Print(fmt.Sprintf(`[%s]--------`, time.Now().Format("2006-01-02 15:04:05")))
 		fmt.Printf("%c[%d;%d;%dmopen file error: %s%c[0m\n", 0x1B, 0 /*字体*/, 0 /*背景*/, 31 /*前景*/, err.Error(), 0x1B)
 		os.Exit(0)

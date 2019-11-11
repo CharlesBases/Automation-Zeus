@@ -36,20 +36,20 @@ func (table *{{.StructName}}) Insert() error {
 	return {{$orm}}.Table(table.Table()).Create(table).Error
 }
 
-func (table *{{.StructName}}) Select(ID int64) error {
-	return {{$orm}}.Table(table.Table()).Where("id = ? AND is_deleted = 0", ID).First(table).Error
+func (table *{{.StructName}}) Select() error {
+	return {{$orm}}.Table(table.Table()).Where("id = ? AND is_deleted = 0", table.ID).First(table).Error
 }
 
-func (table *{{.StructName}}) Update(ID int64) error {
-	return {{$orm}}.Table(table.Table()).Where("id = ? AND is_deleted = 0", ID).Updates(table).Error
+func (table *{{.StructName}}) Update() error {
+	return {{$orm}}.Table(table.Table()).Where("id = ? AND is_deleted = 0", table.ID).Updates(table).Error
 }
 
-func (table *{{.StructName}}) Delete(ID ...int64) error {
-	return {{$orm}}.Table(table.Table()).Where("id IN (?) AND is_deleted = 0", ID).Update(map[string]int{"is_deleted": 1}).Error
+func (table *{{.StructName}}) Delete() error {
+	return {{$orm}}.Table(table.Table()).Where("id = ? AND is_deleted = 0", table.ID).Update(map[string]int{"is_deleted": 1}).Error
 }
 
-func (table *{{.StructName}}) Save(ID int64, value map[string]interface{}) error {
-	return {{$orm}}.Table(table.Table()).Where("id = ? AND is_deleted = 0", ID).Save(value).Error
+func (table *{{.StructName}}) Save(value map[string]interface{}) error {
+	return {{$orm}}.Table(table.Table()).Where("id = ? AND is_deleted = 0", table.ID).Save(value).Error
 }
 
 `

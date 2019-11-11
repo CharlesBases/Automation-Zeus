@@ -7,12 +7,12 @@ var (
 )
 
 var mysqltype = map[string]string{
-	"int":        "int64",
-	"integer":    "int64",
-	"tinyint":    "int64",
-	"smallint":   "int64",
-	"mediumint":  "int64",
-	"bit":        "int64",
+	"int":        "int",
+	"integer":    "int",
+	"tinyint":    "int",
+	"smallint":   "int",
+	"mediumint":  "int",
+	"bit":        "int",
 	"bool":       "bool",
 	"bigint":     "int64",
 	"enum":       "string",
