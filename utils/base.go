@@ -43,7 +43,6 @@ type GlobalConfig struct {
 	Package     string            // 生成结构体文件包名
 	PackagePath string            // 生成结构体文件包路径
 	Filepath    string            // 生成结构体文件路径
-	Variable    map[string]string // var
 	Import      map[string]string // import    导入路径:别名
 	Database    *Database         //
 	Structs     *[]Struct         // 结构体

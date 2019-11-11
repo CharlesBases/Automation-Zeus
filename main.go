@@ -3,8 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"go/parser"
-	"go/token"
 	"os"
 	"os/exec"
 	"path"
@@ -40,7 +38,6 @@ func main() {
 			Package:     filepath.Base(abspath),
 			PackagePath: abspath,
 			Filepath:    abspath,
-			Variable:    map[string]string{"schema": fmt.Sprintf(`"%s"`, parse_schema(*db))},
 			Import:      make(map[string]string, 0),
 			Database: &utils.Database{
 				IP:     *db + "?charset=utf8mb4&parseTime=True&loc=Local",
@@ -61,9 +58,7 @@ func main() {
 	config.GetTable()
 
 	// 解析已有结构体
-	if astFile, err := parser.ParseFile(token.NewFileSet(), config.Filepath, nil, parser.ParseComments); err == nil {
-		config.ParseFile(astFile)
-	}
+	config.ParseFile()
 
 	// 是否只更新已有结构体
 	if !config.Update {

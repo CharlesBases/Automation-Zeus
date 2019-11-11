@@ -99,7 +99,7 @@ func (config *GlobalConfig) parseType(tf *TableField) string {
 	// }
 	gotype := mysqltype[tf.Type]
 	if strings.Contains(gotype, "time.Time") {
-		config.Import[`"time"`] = ""
+		config.Import[`"time"`] = "time"
 	}
 	builder.WriteString(gotype)
 	return builder.String()
