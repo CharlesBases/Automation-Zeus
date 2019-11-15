@@ -46,10 +46,8 @@ package model
 
 import (
 	"time"
-)
-
-var (
-	schema = "mysql"
+	
+	"github.com/CharlesBases/common/orm/gorm"
 )
 
 type Users struct {
@@ -60,6 +58,26 @@ type Users struct {
 }
 
 func (*Users) Table() string {
-	return schema + ".users"
+	return "users"
+}
+
+func (table *Users) Insert() error {
+	return gorm.DB.Table(table.Table()).Create(table).Error
+}
+
+func (table *Users) Select() error {
+	return gorm.DB.Table(table.Table()).Where("id = ? AND is_deleted = 0", table.ID).First(table).Error
+}
+
+func (table *Users) Update() error {
+	return gorm.DB.Table(table.Table()).Where("id = ? AND is_deleted = 0", table.ID).Updates(table).Error
+}
+
+func (table *Users) Delete() error {
+	return gorm.DB.Table(table.Table()).Where("id = ? AND is_deleted = 0", table.ID).Update(map[string]int{"is_deleted": 1}).Error
+}
+
+func (table *Users) Save(value map[string]interface{}) error {
+	return gorm.DB.Table(table.Table()).Where("id = ? AND is_deleted = 0", table.ID).Save(value).Error
 }
 ```

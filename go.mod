@@ -1,4 +1,4 @@
-module github.com/CharlesBases/Automation-zeus
+module github.com/CharlesBases/Automation-Zeus
 
 go 1.13
 

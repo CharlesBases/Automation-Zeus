@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/CharlesBases/Automation-zeus/utils"
+	"github.com/CharlesBases/Automation-Zeus/utils"
 )
 
 type Config struct {
