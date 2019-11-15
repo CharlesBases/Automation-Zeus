@@ -69,6 +69,7 @@ func (table *Users) Select() error {
 	return gorm.DB.Table(table.Table()).Where("id = ? AND is_deleted = 0", table.ID).First(table).Error
 }
 
+// field defaults will not be updated
 func (table *Users) Update() error {
 	return gorm.DB.Table(table.Table()).Where("id = ? AND is_deleted = 0", table.ID).Updates(table).Error
 }
@@ -77,6 +78,7 @@ func (table *Users) Delete() error {
 	return gorm.DB.Table(table.Table()).Where("id = ? AND is_deleted = 0", table.ID).Update(map[string]int{"is_deleted": 1}).Error
 }
 
+// update the value of the given field
 func (table *Users) Save(value map[string]interface{}) error {
 	return gorm.DB.Table(table.Table()).Where("id = ? AND is_deleted = 0", table.ID).Save(value).Error
 }
