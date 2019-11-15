@@ -9,14 +9,6 @@ import (
 	"time"
 )
 
-// 自封装的 gorm 路径
-const ormimports = "github.com/CharlesBases/common/orm/gorm"
-
-// gorm 调用
-var romcall = map[string]string{
-	ormimports: "gorm.DB",
-}
-
 const modeltemplate = `// this model is generate for {{.StructName}} {{$orm:=ormcall}}
 package {{package}}
 
@@ -67,11 +59,17 @@ func (config *GlobalConfig) GenModel(Struct *Struct, wr io.Writer) {
 				importsbuilder.WriteString(fmt.Sprintf("\t%s %s\n\t", val, key))
 			}
 			// gorm import
-			importsbuilder.WriteString(fmt.Sprintf(`"%s"`, ormimports))
+			for orm := range config.ORM {
+				importsbuilder.WriteString(fmt.Sprintf(`"%s"`, orm))
+				break
+			}
 			return template.HTML(importsbuilder.String())
 		},
 		"ormcall": func() string {
-			return romcall[ormimports]
+			for orm := range config.ORM {
+				return config.ORM[orm]
+			}
+			return "gorm.DB"
 		},
 		"tablename": ensnake,
 	})

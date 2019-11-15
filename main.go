@@ -21,6 +21,8 @@ var (
 	db      = flag.String("d", "root:password@tcp(127.0.0.1:3306)/mysql", `database`)
 	table   = flag.String("t", "", `table.multiple files are divided by ","`)
 	genPath = flag.String("p", ".", `generate file path`)
+	orm     = flag.String("o", "github.com/CharlesBases/common/orm/gorm", `encapsulation orm`)
+	ormcall = flag.String("c", "gorm.DB", `orm call`)
 	update  = flag.Bool("u", false, `update struct`)
 	json    = flag.Bool("j", true, `json tag`)
 	gorm    = flag.Bool("g", true, `gorm tag`)
@@ -38,6 +40,7 @@ func main() {
 			Package:     filepath.Base(abspath),
 			PackagePath: abspath,
 			Filepath:    abspath,
+			ORM:         map[string]string{*orm: *ormcall},
 			Import:      make(map[string]string, 0),
 			Database: &utils.Database{
 				IP:     *db + "?charset=utf8mb4&parseTime=True&loc=Local",

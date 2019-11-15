@@ -43,7 +43,8 @@ type GlobalConfig struct {
 	Package     string            // 生成结构体文件包名
 	PackagePath string            // 生成结构体文件包路径
 	Filepath    string            // 生成结构体文件路径
-	Import      map[string]string // import    导入路径:别名
+	ORM         map[string]string // orm 调用     [自封装的 orm 路径]: orm 调用
+	Import      map[string]string // import      [导入路径]:别名
 	Database    *Database         //
 	Structs     *[]Struct         // 结构体
 	Update      bool
