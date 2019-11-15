@@ -43,7 +43,7 @@ func (table *{{.StructName}}) Delete() error {
 func (table *{{.StructName}}) Save(value map[string]interface{}) error {
 	return {{$orm}}.Table(table.Table()).Where("id = ? AND is_deleted = 0", table.ID).Save(value).Error
 }
-
+ 
 `
 
 func (config *GlobalConfig) GenModel(Struct *Struct, wr io.Writer) {
@@ -54,20 +54,16 @@ func (config *GlobalConfig) GenModel(Struct *Struct, wr io.Writer) {
 		},
 		"imports": func() template.HTML {
 			importsbuilder := strings.Builder{}
-			// others import
-			for key, val := range config.Import {
-				importsbuilder.WriteString(fmt.Sprintf("\t%s %s\n\t", val, key))
-			}
-			// gorm import
-			for orm := range config.ORM {
-				importsbuilder.WriteString(fmt.Sprintf(`"%s"`, orm))
-				break
+			for key := range config.Imports {
+				importsbuilder.WriteString(fmt.Sprintf("\t%s\n\t", key))
 			}
 			return template.HTML(importsbuilder.String())
 		},
 		"ormcall": func() string {
-			for orm := range config.ORM {
-				return config.ORM[orm]
+			for key, val := range config.Imports {
+				if key != `"time"` {
+					return val
+				}
 			}
 			return "gorm.DB"
 		},

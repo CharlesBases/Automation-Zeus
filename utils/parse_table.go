@@ -18,6 +18,7 @@ func (config *GlobalConfig) ParseTable(fields *[]TableField) {
 		for key, field := range *fields {
 			if isParse {
 				Struct.StructName = snake(field.TableName)
+				Struct.TableName = field.TableName
 				isParse = false
 			}
 			(*Struct.Fields)[key] = config.parseField(&field)
@@ -99,7 +100,7 @@ func (config *GlobalConfig) parseType(tf *TableField) string {
 	// }
 	gotype := mysqltype[tf.Type]
 	if strings.Contains(gotype, "time.Time") {
-		config.Import[`"time"`] = "time"
+		config.Imports[`"time"`] = ""
 	}
 	builder.WriteString(gotype)
 	return builder.String()
@@ -110,7 +111,10 @@ func (config *GlobalConfig) parseTag(tf *TableField) template.HTML {
 	if config.Json || config.Gorm {
 		builder.WriteString("`")
 		if config.Json {
-			builder.WriteString(fmt.Sprintf(`json:"%s"`, camel(snake(tf.Name))))
+			// aaBbCc
+			// builder.WriteString(fmt.Sprintf(`json:"%s"`, camel(snake(tf.Name))))
+			// aa_bb_cc
+			builder.WriteString(fmt.Sprintf(`json:"%s"`, tf.Name))
 		}
 		if config.Gorm {
 			if config.Json {

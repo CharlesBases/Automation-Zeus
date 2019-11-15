@@ -8,6 +8,7 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/CharlesBases/Automation-Zeus/utils"
@@ -39,42 +40,69 @@ func main() {
 		GlobalConfig: utils.GlobalConfig{
 			Package:     filepath.Base(abspath),
 			PackagePath: abspath,
-			Filepath:    abspath,
-			ORM:         map[string]string{*orm: *ormcall},
-			Import:      make(map[string]string, 0),
 			Database: &utils.Database{
 				IP:     *db + "?charset=utf8mb4&parseTime=True&loc=Local",
 				Schema: parse_schema(*db),
 				Tables: make(map[string]*[]utils.TableField),
 			},
 			Structs: &[]utils.Struct{},
+			Imports: make(map[string]string, 0),
 			Update:  *update,
 			Json:    *json,
 			Gorm:    *gorm,
 		},
 	}
 
+	config.Imports[fmt.Sprintf(`"%s"`, *orm)] = *ormcall
+
+	swg := sync.WaitGroup{}
+	swg.Add(4)
+
+	databasechannel := make(chan int64, 2)
+
 	// 连接数据库
-	config.Database.InitMysql()
+	go func() {
+		defer swg.Done()
+
+		config.Database.InitMysql()
+		databasechannel <- time.Now().UnixNano()
+		databasechannel <- time.Now().UnixNano()
+	}()
 
 	// 获取数据库下所有表列表，以 order by table_name 排序
-	config.GetTable()
+	go func() {
+		defer swg.Done()
+
+		<-databasechannel
+		config.GetTable()
+	}()
 
 	// 解析已有结构体
-	config.ParseFile()
+	go func() {
+		defer swg.Done()
+
+		<-databasechannel
+		config.ParseFile()
+	}()
 
 	// 是否只更新已有结构体
-	if !config.Update {
-		if len(*table) != 0 {
-			for _, val := range strings.Split(*table, ",") {
-				config.Database.Tables[val] = &[]utils.TableField{}
-			}
-		} else {
-			for _, val := range *(config.Database.TablesSort) {
-				config.Database.Tables[val] = &[]utils.TableField{}
+	go func() {
+		defer swg.Done()
+
+		if !config.Update {
+			if len(*table) != 0 {
+				for _, val := range strings.Split(*table, ",") {
+					config.Database.Tables[val] = &[]utils.TableField{}
+				}
+			} else {
+				for _, val := range *(config.Database.TablesSort) {
+					config.Database.Tables[val] = &[]utils.TableField{}
+				}
 			}
 		}
-	}
+	}()
+
+	swg.Wait()
 
 	fmt.Print(fmt.Sprintf(`[%s]--------`, time.Now().Format("2006-01-02 15:04:05")))
 	fmt.Printf("%c[%d;%d;%dmparse database: %s%c[0m\n", 0x1B, 0 /*字体*/, 0 /*背景*/, 36 /*前景*/, config.Database.Schema, 0x1B)
@@ -116,21 +144,6 @@ func (config *Config) create(filepath string) *os.File {
 	fmt.Print(fmt.Sprintf(`[%s]--------`, time.Now().Format("2006-01-02 15:04:05")))
 	fmt.Printf("%c[%d;%d;%dmcreate model file %s...%c[0m\n", 0x1B, 0 /*字体*/, 0 /*背景*/, 36 /*前景*/, path.Base(filepath), 0x1B)
 	if file, err := os.OpenFile(filepath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0755); err != nil {
-		fmt.Print(fmt.Sprintf(`[%s]--------`, time.Now().Format("2006-01-02 15:04:05")))
-		fmt.Printf("%c[%d;%d;%dmopen file error: %s%c[0m\n", 0x1B, 0 /*字体*/, 0 /*背景*/, 31 /*前景*/, err.Error(), 0x1B)
-		os.Exit(0)
-	} else {
-		return file
-	}
-	return nil
-}
-
-func (config *Config) createModel() *os.File {
-	os.RemoveAll(config.Filepath)
-
-	fmt.Print(fmt.Sprintf(`[%s]--------`, time.Now().Format("2006-01-02 15:04:05")))
-	fmt.Printf("%c[%d;%d;%dmcreate model file...%c[0m\n", 0x1B, 0 /*字体*/, 0 /*背景*/, 36 /*前景*/, 0x1B)
-	if file, err := os.OpenFile(config.Filepath, os.O_RDWR|os.O_CREATE, 0755); err != nil {
 		fmt.Print(fmt.Sprintf(`[%s]--------`, time.Now().Format("2006-01-02 15:04:05")))
 		fmt.Printf("%c[%d;%d;%dmopen file error: %s%c[0m\n", 0x1B, 0 /*字体*/, 0 /*背景*/, 31 /*前景*/, err.Error(), 0x1B)
 		os.Exit(0)

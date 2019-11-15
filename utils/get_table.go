@@ -6,6 +6,7 @@ import (
 	"time"
 )
 
+// 获取当前库下所有表名
 func (config *GlobalConfig) GetTable() {
 	tables := make([]string, 0)
 	err := DB.Table(information_columns).
@@ -22,6 +23,7 @@ func (config *GlobalConfig) GetTable() {
 	config.Database.TablesSort = &tables
 }
 
+// 获取表结构
 func (database *Database) GetTable(table string) {
 	err := DB.Table(information_columns).
 		Select([]string{

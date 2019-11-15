@@ -2,9 +2,7 @@ package utils
 
 import "html/template"
 
-var (
-	information_columns = "information_schema.COLUMNS"
-)
+const information_columns = "information_schema.COLUMNS"
 
 var mysqltype = map[string]string{
 	"int":        "int",
@@ -42,11 +40,9 @@ var mysqltype = map[string]string{
 type GlobalConfig struct {
 	Package     string            // 生成结构体文件包名
 	PackagePath string            // 生成结构体文件包路径
-	Filepath    string            // 生成结构体文件路径
-	ORM         map[string]string // orm 调用     [自封装的 orm 路径]: orm 调用
-	Import      map[string]string // import      [导入路径]:别名
 	Database    *Database         //
 	Structs     *[]Struct         // 结构体
+	Imports     map[string]string // import      [导入路径]:调用
 	Update      bool
 	Json        bool
 	Gorm        bool
@@ -55,8 +51,8 @@ type GlobalConfig struct {
 type Database struct {
 	IP         string
 	Schema     string
-	Tables     map[string]*[]TableField
-	TablesSort *[]string // 数据库下所有表列表
+	Tables     map[string]*[]TableField // 实际需要输出的表
+	TablesSort *[]string                // 数据库下所有表列表
 }
 
 type TableField struct {
@@ -72,6 +68,7 @@ type TableField struct {
 
 type Struct struct {
 	StructName string
+	TableName  string
 	Fields     *[]StructField
 }
 
