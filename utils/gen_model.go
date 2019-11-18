@@ -21,7 +21,7 @@ type {{.StructName}} struct {                               {{range $fieldIndex,
 }
 
 func (*{{.StructName}}) Table() string {
-	return "{{tablename .StructName}}"
+	return "{{.TableName}}"
 }
 
 func (table *{{.StructName}}) Insert() error {

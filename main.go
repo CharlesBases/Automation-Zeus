@@ -59,6 +59,7 @@ func main() {
 	swg.Add(4)
 
 	databasechannel := make(chan int64, 2)
+	tableschannel := make(chan int64)
 
 	// 连接数据库
 	go func() {
@@ -75,6 +76,8 @@ func main() {
 
 		<-databasechannel
 		config.GetTable()
+
+		tableschannel <- time.Now().UnixNano()
 	}()
 
 	// 解析已有结构体
@@ -88,6 +91,8 @@ func main() {
 	// 是否只更新已有结构体
 	go func() {
 		defer swg.Done()
+
+		<-tableschannel
 
 		if !config.Update {
 			if len(*table) != 0 {
