@@ -13,6 +13,10 @@ const modeltemplate = `// this model is generate for {{.StructName}} {{$orm:=orm
 package {{package}}
 
 import (
+	"fmt"
+	"sync"
+
+	"github.com/jinzhu/gorm"
 {{imports}}
 )
 
@@ -20,28 +24,70 @@ type {{.StructName}} struct {                               {{range $fieldIndex,
 	{{.Name}}   {{.Type}}   {{.Tag}}    // {{.Comment}}     {{end}}
 }
 
+func New{{.StructName}}() *{{.StructName}} {
+    return new({{.StructName}})
+}
+
 func (*{{.StructName}}) Table() string {
 	return "{{.TableName}}"
 }
 
+func (table *{{.StructName}}) DB() *gorm.DB {
+	return orm.Gorm().Table(table.Table())
+}
+
 func (table *{{.StructName}}) Insert() error {
-	return {{$orm}}.Table(table.Table()).Create(table).Error
+	return table.DB().Create(table).Error
 }
 
 func (table *{{.StructName}}) Select() error {
-	return {{$orm}}.Table(table.Table()).Where("id = ? AND is_deleted = 0", table.ID).First(table).Error
+	return table.DB().Where("id = ? AND is_deleted = 0", table.ID).First(table).Error
 }
 
 func (table *{{.StructName}}) Update() error {
-	return {{$orm}}.Table(table.Table()).Where("id = ? AND is_deleted = 0", table.ID).Updates(table).Error
+	return table.DB().Where("id = ? AND is_deleted = 0", table.ID).Updates(table).Error
 }
 
 func (table *{{.StructName}}) Delete() error {
-	return {{$orm}}.Table(table.Table()).Where("id = ? AND is_deleted = 0", table.ID).Update(map[string]int{"is_deleted": 1}).Error
+	return table.DB().Where("id = ? AND is_deleted = 0", table.ID).Update(map[string]int{"is_deleted": 1}).Error
 }
 
 func (table *{{.StructName}}) Save(value map[string]interface{}) error {
-	return {{$orm}}.Table(table.Table()).Where("id = ? AND is_deleted = 0", table.ID).Save(value).Error
+	return table.DB().Where("id = ? AND is_deleted = 0", table.ID).Save(value).Error
+}
+
+func (*{{.StructName}}) Inserts(tables *[]{{.StructName}}) error {
+	swg := sync.WaitGroup{}
+	swg.Add(len(*tables))
+
+	errorchannel := make(chan error, len(*tables))
+
+	tx := orm.Gorm().Begin()
+
+	defer func() {
+		if err := recover(); err != nil {
+			tx.Rollback()
+		}
+	}()
+
+	for _, table := range *tables {
+		go func(x *{{.StructName}}) {
+			defer swg.Done()
+
+			if err := tx.Table(x.Table()).Create(x).Error; err != nil {
+				errorchannel {{html "<-"}} err
+				log.Errorf(fmt.Sprintf("Inserts %s error: %v", x.Table(), err))
+			}
+		}(&table)
+	}
+	swg.Wait()
+	close(errorchannel)
+
+	for err := range errorchannel {
+		tx.Rollback()
+		return err
+	}
+	return tx.Commit().Error
 }
  
 `
@@ -57,6 +103,8 @@ func (config *GlobalConfig) GenModel(Struct *Struct, wr io.Writer) {
 			for key := range config.Imports {
 				importsbuilder.WriteString(fmt.Sprintf("\t%s\n\t", key))
 			}
+			importsbuilder.WriteString("\t")
+			importsbuilder.WriteString(`"gitlab.ifchange.com/bot/gokitcommon/log"`)
 			return template.HTML(importsbuilder.String())
 		},
 		"ormcall": func() string {
@@ -66,6 +114,9 @@ func (config *GlobalConfig) GenModel(Struct *Struct, wr io.Writer) {
 				}
 			}
 			return "gorm.DB"
+		},
+		"html": func(source string) template.HTML {
+			return template.HTML(source)
 		},
 		"tablename": ensnake,
 	})

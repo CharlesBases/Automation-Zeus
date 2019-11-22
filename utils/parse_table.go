@@ -128,7 +128,7 @@ func (config *GlobalConfig) parseTag(tf *TableField) template.HTML {
 				builder.WriteString(";primary_key")
 			}
 			if len(tf.Extra) != 0 {
-				builder.WriteString(";auto_increment")
+				builder.WriteString(fmt.Sprintf(";%s", tf.Extra))
 			}
 			builder.WriteString(`"`)
 		}
