@@ -79,7 +79,6 @@ func (table *{{.StructName}}) Inserts(tables []*{{.StructName}}) error {
 	for _, table := range tables {
 		go func(x *{{.StructName}}) {
 			defer swg.Done()
-
 			if err := tx.Create(x).Error; err != nil {
 				errorchannel {{html "<-"}} err
 				log.Errorf(fmt.Sprintf("Inserts %s error: %v", x.Table(), err))
