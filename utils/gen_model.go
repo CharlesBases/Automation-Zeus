@@ -53,30 +53,30 @@ func (table *{{.StructName}}) Delete() error {
 }
 
 func (table *{{.StructName}}) First(query interface{}, args ...interface{}) error {
-	return table.DB().Where(query, args).First(table).Error
+	return table.DB().Where(query, args...).First(table).Error
 }
 
-func (table *{{.StructName}}) Selects(query interface{}, args ...interface{}) (*[]{{.StructName}}, error) {
+func (table *{{.StructName}}) Selects(query interface{}, args ...interface{}) ([]{{.StructName}}, error) {
 	list := make([]{{.StructName}}, 0)
-	err := table.DB().Where(query, args).Find(&list).Error
-	return &list, err
+	err := table.DB().Where(query, args...).Find(list).Error
+	return list, err
 }
 
 func (table *{{.StructName}}) Updates(datas map[string]interface{}, query interface{}, args ...interface{}) error {
-	return table.DB().Where(query, args).Updates(datas).Error
+	return table.DB().Where(query, args...).Updates(datas).Error
 }
 
-func (table *{{.StructName}}) Inserts(tables *[]{{.StructName}}) error {
+func (table *{{.StructName}}) Inserts(tables []*{{.StructName}}) error {
 	swg := sync.WaitGroup{}
-	swg.Add(len(*tables))
-	errorchannel := make(chan error, len(*tables))
+	swg.Add(len(tables))
+	errorchannel := make(chan error, len(tables))
 	tx := table.DB().Begin()
 	defer func() {
 		if err := recover(); err != nil {
 			tx.Rollback()
 		}
 	}()
-	for _, table := range *tables {
+	for _, table := range tables {
 		go func(x *{{.StructName}}) {
 			defer swg.Done()
 
@@ -84,7 +84,7 @@ func (table *{{.StructName}}) Inserts(tables *[]{{.StructName}}) error {
 				errorchannel {{html "<-"}} err
 				log.Errorf(fmt.Sprintf("Inserts %s error: %v", x.Table(), err))
 			}
-		}(&table)
+		}(table)
 	}
 	swg.Wait()
 	close(errorchannel)
