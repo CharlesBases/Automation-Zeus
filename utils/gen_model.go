@@ -24,12 +24,6 @@ type {{.StructName}} struct {                               {{range $fieldIndex,
 	{{.Name}}   {{.Type}}   {{.Tag}}    // {{.Comment}}     {{end}}
 }
 
-type {{private .StructName}} struct {
-	List  []{{.StructName}}
-	Count int
-	Error error
-}
-
 func New{{.StructName}}() *{{.StructName}} {
     return new({{.StructName}})
 }
@@ -42,34 +36,36 @@ func (table *{{.StructName}}) DB() *gorm.DB {
 	return orm.Gorm().Table(table.Table())
 }
 
-// insert one
 func (table *{{.StructName}}) Insert() error {
 	return table.DB().Create(table).Error
 }
 
-// select one by id
 func (table *{{.StructName}}) Select() error {
 	return table.DB().Where("id = ? AND is_deleted = 0", table.ID).First(table).Error
 }
 
-// update one by id, but do not update field defaults
 func (table *{{.StructName}}) Update() error {
 	return table.DB().Where("id = ? AND is_deleted = 0", table.ID).Updates(table).Error
 }
 
-// delete one by id
 func (table *{{.StructName}}) Delete() error {
 	return table.DB().Where("id = ? AND is_deleted = 0", table.ID).Update(map[string]int{"is_deleted": 1}).Error
 }
 
-// select multiple data in a single table
-func (table *{{.StructName}}) Selects(query interface{}, args ...interface{}) *{{private .StructName}} {
-	tables := new({{private .StructName}})
-	tables.Error = table.DB().Count(&tables.Count).Where(query, args).Find(&tables.List).Error
-	return tables
+func (table *{{.StructName}}) First(query interface{}, args ...interface{}) error {
+	return table.DB().Where(query, args).First(table).Error
 }
 
-// insert multiple data in a single table
+func (table *{{.StructName}}) Selects(query interface{}, args ...interface{}) (*[]{{.StructName}}, error) {
+	list := make([]{{.StructName}}, 0)
+	err := table.DB().Where(query, args).Find(&list).Error
+	return &list, err
+}
+
+func (table *{{.StructName}}) Updates(datas map[string]interface{}, query interface{}, args ...interface{}) error {
+	return table.DB().Where(query, args).Updates(datas).Error
+}
+
 func (table *{{.StructName}}) Inserts(tables *[]{{.StructName}}) error {
 	swg := sync.WaitGroup{}
 	swg.Add(len(*tables))
@@ -99,21 +95,6 @@ func (table *{{.StructName}}) Inserts(tables *[]{{.StructName}}) error {
 	return tx.Commit().Error
 }
 
-// updates multiple data in a single table. field defaults can be updated
-func (table *{{.StructName}}) Updates(datas map[string]interface{}, query interface{}, args ...interface{}) error {
-	tx := table.DB().Begin()
-	defer func() {
-		if err := recover(); err != nil {
-			tx.Rollback()
-		}
-	}()
-	if err := tx.Where(query, args).Updates(datas).Error; err != nil {
-		tx.Rollback()
-		return err
-	}
-	return tx.Commit().Error
-}
- 
 `
 
 func (config *GlobalConfig) GenModel(Struct *Struct, wr io.Writer) {
