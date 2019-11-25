@@ -122,7 +122,7 @@ func main() {
 	}
 
 	for _, Struct := range *config.Structs {
-		structfile := config.create(path.Join(config.PackagePath, fmt.Sprintf("%s.go", Struct.StructName)))
+		structfile := config.create(path.Join(config.PackagePath, fmt.Sprintf("%s.go", Struct.TableName)))
 		config.GenModel(&Struct, structfile)
 
 		structfile.Close()

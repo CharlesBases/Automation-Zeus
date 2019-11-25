@@ -18,7 +18,7 @@ func (config *GlobalConfig) ParseFile() {
 
 	for _, val := range filename {
 		if strings.HasSuffix(val.Name(), ".go") {
-			config.Database.Tables[ensnake(strings.TrimRight(val.Name(), ".go"))] = &[]TableField{}
+			config.Database.Tables[strings.TrimRight(val.Name(), ".go")] = &[]TableField{}
 		}
 	}
 }
