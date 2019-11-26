@@ -9,7 +9,7 @@ import (
 func (config *GlobalConfig) ParseTable(fields *[]TableField) {
 	if len(*fields) != 0 {
 		isParse := true
-		Struct := Struct{
+		Struct := &Struct{
 			Fields: func() *[]StructField {
 				list := make([]StructField, len(*fields))
 				return &list
@@ -23,7 +23,7 @@ func (config *GlobalConfig) ParseTable(fields *[]TableField) {
 			}
 			(*Struct.Fields)[key] = config.parseField(&field)
 		}
-		*config.Structs = append(*config.Structs, Struct)
+		config.Structs = append(config.Structs, Struct)
 	}
 }
 

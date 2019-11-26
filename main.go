@@ -11,7 +11,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/CharlesBases/Automation-Zeus/utils"
+	"CharlesBases/Automation-Zeus/template"
+	"CharlesBases/Automation-Zeus/utils"
 )
 
 type Config struct {
@@ -22,8 +23,6 @@ var (
 	db      = flag.String("d", "root:password@tcp(127.0.0.1:3306)/mysql", `database`)
 	table   = flag.String("t", "", `table.multiple files are divided by ","`)
 	genPath = flag.String("p", ".", `generate file path`)
-	orm     = flag.String("o", "github.com/CharlesBases/common/orm/gorm", `encapsulation orm`)
-	ormcall = flag.String("c", "gorm.DB", `orm call`)
 	update  = flag.Bool("u", false, `update struct`)
 	json    = flag.Bool("j", true, `json tag`)
 	gorm    = flag.Bool("g", true, `gorm tag`)
@@ -40,20 +39,18 @@ func main() {
 		GlobalConfig: utils.GlobalConfig{
 			Package:     filepath.Base(abspath),
 			PackagePath: abspath,
-			Database: &utils.Database{
-				IP:     *db + "?charset=utf8mb4&parseTime=True&loc=Local",
+			Database: utils.Database{
+				IP:     *db + "?charset=utf8mb4&sql_notes=false&sql_notes=false&timeout=90s&collation=utf8mb4_general_ci&parseTime=True&loc=Local",
 				Schema: parse_schema(*db),
 				Tables: make(map[string]*[]utils.TableField),
 			},
-			Structs: &[]utils.Struct{},
+			Structs: make([]*utils.Struct, 0),
 			Imports: make(map[string]string, 0),
 			Update:  *update,
 			Json:    *json,
 			Gorm:    *gorm,
 		},
 	}
-
-	config.Imports[fmt.Sprintf(`"%s"`, *orm)] = *ormcall
 
 	swg := sync.WaitGroup{}
 	swg.Add(4)
@@ -121,12 +118,19 @@ func main() {
 		}
 	}
 
-	for _, Struct := range *config.Structs {
-		structfile := config.create(path.Join(config.PackagePath, fmt.Sprintf("%s.go", Struct.TableName)))
-		config.GenModel(&Struct, structfile)
+	for _, Struct := range config.Structs {
+		go func(x *utils.Struct) {
+			swg.Add(1)
+			defer swg.Done()
 
-		structfile.Close()
+			structfile := config.create(path.Join(config.PackagePath, fmt.Sprintf("%s.go", x.TableName)))
+			template.Infor{Config: &config.GlobalConfig, Struct: x}.GenModel(structfile)
+
+			structfile.Close()
+		}(Struct)
 	}
+
+	swg.Wait()
 
 	config.gofmt()
 

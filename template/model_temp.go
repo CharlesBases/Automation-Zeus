@@ -1,23 +1,15 @@
-package utils
+package template
 
-import (
-	"fmt"
-	"html/template"
-	"io"
-	"os"
-	"strings"
-	"time"
-)
-
-const modeltemplate = `// this model is generate for {{.StructName}} {{$orm:=ormcall}}
+const modeltemplate = `// this model is generate for table {{.TableName}}
 package {{package}}
 
 import (
 	"fmt"
 	"sync"
-
+	{{imports}}
 	"github.com/jinzhu/gorm"
-{{imports}}
+	"gitlab.ifchange.com/bot/gokitcommon/log"
+	"gitlab.ifchange.com/bot/gokitcommon/orm"
 )
 
 type {{.StructName}} struct {                               {{range $fieldIndex, $field := .Fields}}
@@ -95,44 +87,3 @@ func (table *{{.StructName}}) Inserts(tables []*{{.StructName}}) error {
 }
 
 `
-
-func (config *GlobalConfig) GenModel(Struct *Struct, wr io.Writer) {
-	temp := template.New(Struct.StructName)
-	temp.Funcs(template.FuncMap{
-		"package": func() string {
-			return config.Package
-		},
-		"imports": func() template.HTML {
-			importsbuilder := strings.Builder{}
-			for key := range config.Imports {
-				importsbuilder.WriteString(fmt.Sprintf("\t%s\n\t", key))
-			}
-			importsbuilder.WriteString("\t")
-			importsbuilder.WriteString(`"gitlab.ifchange.com/bot/gokitcommon/log"`)
-			return template.HTML(importsbuilder.String())
-		},
-		"ormcall": func() string {
-			for key, val := range config.Imports {
-				if key != `"time"` {
-					return val
-				}
-			}
-			return "gorm.DB"
-		},
-		"private": func(source string) string {
-			return strings.ToLower(source)
-
-		},
-		"html": func(source string) template.HTML {
-			return template.HTML(source)
-		},
-		"tablename": ensnake,
-	})
-	modelTemplate, err := temp.Parse(modeltemplate)
-	if err != nil {
-		fmt.Print(fmt.Sprintf(`[%s]----------`, time.Now().Format("2006-01-02 15:04:05")))
-		fmt.Printf("%c[%d;%d;%dmgen model error: %s%c[0m\n", 0x1B, 0 /*字体*/, 0 /*背景*/, 31 /*前景*/, err.Error(), 0x1B)
-		os.Exit(1)
-	}
-	modelTemplate.Execute(wr, Struct)
-}
