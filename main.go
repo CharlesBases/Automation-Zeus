@@ -118,6 +118,7 @@ func main() {
 		}
 	}
 
+	// 生成 model
 	for _, Struct := range config.Structs {
 		go func(x *utils.Struct) {
 			swg.Add(1)
