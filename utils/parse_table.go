@@ -127,8 +127,8 @@ func (config *GlobalConfig) parseTag(tf *TableField) template.HTML {
 			if tf.Primary == "PRI" {
 				builder.WriteString(";primary_key")
 			}
-			if len(tf.Extra) != 0 {
-				builder.WriteString(fmt.Sprintf(";%s", tf.Extra))
+			if tf.Extra == "auto_increment" {
+				builder.WriteString(";auto_increment")
 			}
 			builder.WriteString(`"`)
 		}
