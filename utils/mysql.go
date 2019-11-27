@@ -16,15 +16,13 @@ var (
 func (database *Database) InitMysql() {
 	db, err := gorm.Open("mysql", database.IP)
 	if err != nil {
-		fmt.Print(fmt.Sprintf(`[%s]------`, time.Now().Format("2006-01-02 15:04:05")))
-		fmt.Printf("%c[%d;%d;%dmconnection error: %s%c[0m\n", 0x1B, 0 /*字体*/, 0 /*背景*/, 31 /*前景*/, err.Error(), 0x1B)
-		os.Exit(0)
+		fmt.Print(fmt.Sprintf("[%s]------%c[%d;%d;%dmconnection error: %s%c[0m\n", time.Now().Format("2006-01-02 15:04:05"), 0x1B, 0 /*字体*/, 0 /*背景*/, 31 /*前景*/, err.Error(), 0x1B))
+		os.Exit(1)
 	}
 
 	if err := db.DB().Ping(); err != nil {
-		fmt.Print(fmt.Sprintf(`[%s]------`, time.Now().Format("2006-01-02 15:04:05")))
-		fmt.Printf("%c[%d;%d;%dmping error: %s%c[0m\n", 0x1B, 0 /*字体*/, 0 /*背景*/, 31 /*前景*/, err.Error(), 0x1B)
-		os.Exit(0)
+		fmt.Print(fmt.Sprintf("[%s]------%c[%d;%d;%dmping error: %s%c[0m\n", time.Now().Format("2006-01-02 15:04:05"), 0x1B, 0 /*字体*/, 0 /*背景*/, 31 /*前景*/, err.Error(), 0x1B))
+		os.Exit(1)
 	}
 
 	if DB != nil {
@@ -32,8 +30,7 @@ func (database *Database) InitMysql() {
 	}
 	DB = db
 
-	fmt.Print(fmt.Sprintf(`[%s]------`, time.Now().Format("2006-01-02 15:04:05")))
-	fmt.Printf("%c[%d;%d;%dmsuccessful connection !%c[0m\n", 0x1B, 0 /*字体*/, 0 /*背景*/, 35 /*前景*/, 0x1B)
+	fmt.Print(fmt.Sprintf("[%s]------%c[%d;%d;%dmsuccessful connection !%c[0m\n", time.Now().Format("2006-01-02 15:04:05"), 0x1B, 0 /*字体*/, 0 /*背景*/, 35 /*前景*/, 0x1B))
 }
 
 // 获取当前库下所有表名
@@ -46,8 +43,7 @@ func (config *GlobalConfig) GetTable() {
 		Pluck("TABLE_NAME", &tables).
 		Error
 	if err != nil {
-		fmt.Print(fmt.Sprintf(`[%s]--------`, time.Now().Format("2006-01-02 15:04:05")))
-		fmt.Printf("%c[%d;%d;%dminformation_columns error: %s%c[0m\n", 0x1B, 0 /*字体*/, 0 /*背景*/, 31 /*前景*/, err.Error(), 0x1B)
+		fmt.Print(fmt.Sprintf("[%s]--------%c[%d;%d;%dminformation_columns error: %s%c[0m\n", time.Now().Format("2006-01-02 15:04:05"), 0x1B, 0 /*字体*/, 0 /*背景*/, 31 /*前景*/, err.Error(), 0x1B))
 		os.Exit(1)
 	}
 	config.Database.TablesSort = &tables
@@ -71,8 +67,7 @@ func (database *Database) GetTable(table string) {
 		Find(database.Tables[table]).
 		Error
 	if err != nil {
-		fmt.Print(fmt.Sprintf(`[%s]--------`, time.Now().Format("2006-01-02 15:04:05")))
-		fmt.Printf("%c[%d;%d;%dminformation_columns error: %s%c[0m\n", 0x1B, 0 /*字体*/, 0 /*背景*/, 31 /*前景*/, err.Error(), 0x1B)
+		fmt.Print(fmt.Sprintf("[%s]--------%c[%d;%d;%dminformation_columns error: %s%c[0m\n", time.Now().Format("2006-01-02 15:04:05"), 0x1B, 0 /*字体*/, 0 /*背景*/, 31 /*前景*/, err.Error(), 0x1B))
 		os.Exit(1)
 	}
 }

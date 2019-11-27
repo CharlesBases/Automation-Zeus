@@ -18,7 +18,7 @@ func (infor *Infor) GenModel(wr io.Writer) {
 		"imports": func() template.HTML {
 			importsbuilder := strings.Builder{}
 			for key := range infor.Config.Imports {
-				importsbuilder.WriteString(fmt.Sprintf("\t%s\n\t", key))
+				importsbuilder.WriteString(fmt.Sprintf("%s\n\t", key))
 			}
 			return template.HTML(importsbuilder.String())
 		},
@@ -28,8 +28,7 @@ func (infor *Infor) GenModel(wr io.Writer) {
 	})
 	modelTemplate, err := temp.Parse(modeltemplate)
 	if err != nil {
-		fmt.Print(fmt.Sprintf(`[%s]----------`, time.Now().Format("2006-01-02 15:04:05")))
-		fmt.Printf("%c[%d;%d;%dmgen model error: %s%c[0m\n", 0x1B, 0 /*字体*/, 0 /*背景*/, 31 /*前景*/, err.Error(), 0x1B)
+		fmt.Print(fmt.Sprintf("[%s]----------%c[%d;%d;%dmgen model error: %s%c[0m\n", time.Now().Format("2006-01-02 15:04:05"), 0x1B, 0 /*字体*/, 0 /*背景*/, 31 /*前景*/, err.Error(), 0x1B))
 		os.Exit(1)
 	}
 	modelTemplate.Execute(wr, infor.Struct)

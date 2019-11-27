@@ -106,8 +106,7 @@ func main() {
 
 	swg.Wait()
 
-	fmt.Print(fmt.Sprintf(`[%s]--------`, time.Now().Format("2006-01-02 15:04:05")))
-	fmt.Printf("%c[%d;%d;%dmparse database: %s%c[0m\n", 0x1B, 0 /*字体*/, 0 /*背景*/, 36 /*前景*/, config.Database.Schema, 0x1B)
+	fmt.Print(fmt.Sprintf("[%s]--------%c[%d;%d;%dmparse database: %s%c[0m\n", time.Now().Format("2006-01-02 15:04:05"), 0x1B, 0 /*字体*/, 0 /*背景*/, 36 /*前景*/, config.Database.Schema, 0x1B))
 
 	// 获取表结构
 	for _, val := range *config.Database.TablesSort {
@@ -118,10 +117,11 @@ func main() {
 		}
 	}
 
+	swg.Add(len(config.Structs))
+
 	// 生成 model
 	for _, Struct := range config.Structs {
 		go func(x *utils.Struct) {
-			swg.Add(1)
 			defer swg.Done()
 
 			structfile := config.create(path.Join(config.PackagePath, fmt.Sprintf("%s.go", x.TableName)))
@@ -136,8 +136,7 @@ func main() {
 
 	config.gofmt()
 
-	fmt.Print(fmt.Sprintf(`[%s]------`, time.Now().Format("2006-01-02 15:04:05")))
-	fmt.Printf("%c[%d;%d;%dmcomplete !%c[0m\n", 0x1B, 0 /*字体*/, 0 /*背景*/, 35 /*前景*/, 0x1B)
+	fmt.Print(fmt.Sprintf("[%s]------%c[%d;%d;%dmcomplete !%c[0m\n", time.Now().Format("2006-01-02 15:04:05"), 0x1B, 0 /*字体*/, 0 /*背景*/, 35 /*前景*/, 0x1B))
 }
 
 // 获取数据库名
@@ -152,12 +151,10 @@ func parse_schema(ip string) (schema string) {
 func (config *Config) create(filepath string) *os.File {
 	os.RemoveAll(path.Join(config.PackagePath, fmt.Sprintf("%s.go", filepath)))
 
-	fmt.Print(fmt.Sprintf(`[%s]--------`, time.Now().Format("2006-01-02 15:04:05")))
-	fmt.Printf("%c[%d;%d;%dmcreate model file %s...%c[0m\n", 0x1B, 0 /*字体*/, 0 /*背景*/, 36 /*前景*/, path.Base(filepath), 0x1B)
+	fmt.Print(fmt.Sprintf("[%s]--------%c[%d;%d;%dmcreate model file %s...%c[0m\n", time.Now().Format("2006-01-02 15:04:05"), 0x1B, 0 /*字体*/, 0 /*背景*/, 36 /*前景*/, path.Base(filepath), 0x1B))
 	if file, err := os.OpenFile(filepath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0755); err != nil {
-		fmt.Print(fmt.Sprintf(`[%s]--------`, time.Now().Format("2006-01-02 15:04:05")))
-		fmt.Printf("%c[%d;%d;%dmopen file error: %s%c[0m\n", 0x1B, 0 /*字体*/, 0 /*背景*/, 31 /*前景*/, err.Error(), 0x1B)
-		os.Exit(0)
+		fmt.Print(fmt.Sprintf("[%s]--------%c[%d;%d;%dmopen file error: %s%c[0m\n", time.Now().Format("2006-01-02 15:04:05"), 0x1B, 0 /*字体*/, 0 /*背景*/, 31 /*前景*/, err.Error(), 0x1B))
+		os.Exit(1)
 	} else {
 		return file
 	}
@@ -168,8 +165,7 @@ func (config *Config) gofmt() {
 	cmd := exec.Command("gofmt", "-l", "-w", "-s", config.PackagePath)
 	err := cmd.Run()
 	if err != nil {
-		fmt.Print(fmt.Sprintf(`[%s]------`, time.Now().Format("2006-01-02 15:04:05")))
-		fmt.Printf("%c[%d;%d;%dmgofmt error: %s%c[0m\n", 0x1B, 0 /*字体*/, 0 /*背景*/, 31 /*前景*/, err.Error(), 0x1B)
-		os.Exit(0)
+		fmt.Print(fmt.Sprintf("[%s]------%c[%d;%d;%dmgofmt error: %s%c[0m\n", time.Now().Format("2006-01-02 15:04:05"), 0x1B, 0 /*字体*/, 0 /*背景*/, 31 /*前景*/, err.Error(), 0x1B))
+		os.Exit(1)
 	}
 }
