@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-func (infor Infor) GenModel(wr io.Writer) {
+func (infor *Infor) GenModel(wr io.Writer) {
 	temp := template.New(infor.Struct.StructName)
 	temp.Funcs(template.FuncMap{
 		"package": func() string {

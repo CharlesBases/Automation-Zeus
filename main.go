@@ -125,7 +125,8 @@ func main() {
 			defer swg.Done()
 
 			structfile := config.create(path.Join(config.PackagePath, fmt.Sprintf("%s.go", x.TableName)))
-			template.Infor{Config: &config.GlobalConfig, Struct: x}.GenModel(structfile)
+			infor := &template.Infor{Config: &config.GlobalConfig, Struct: x}
+			infor.GenModel(structfile)
 
 			structfile.Close()
 		}(Struct)
