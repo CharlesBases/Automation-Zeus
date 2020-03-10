@@ -25,6 +25,11 @@ func (infor *Infor) GenModel(wr io.Writer) {
 		"html": func(source string) template.HTML {
 			return template.HTML(source)
 		},
+		"gormDB": func() template.HTML {
+			strBuilder := strings.Builder{}
+			strBuilder.WriteString("db *gorm.DB " + "`" + `json:"-" gorm:"-"` + "`")
+			return template.HTML(strBuilder.String())
+		},
 	})
 	modelTemplate, err := temp.Parse(modeltemplate)
 	if err != nil {

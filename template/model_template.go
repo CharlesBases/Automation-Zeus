@@ -8,61 +8,57 @@ import (
 	"sync"
 	{{imports}}
 	"github.com/jinzhu/gorm"
-	"gitlab.ifchange.com/bot/gokitcommon/log"
-	"gitlab.ifchange.com/bot/gokitcommon/orm"
+	"github.com/CharlesBases/common/log"
+	orm "github.com/CharlesBases/common/orm/gorm"
 )
 
-type {{.StructName}} struct {                               {{range $fieldIndex, $field := .Fields}}
-	{{.Name}}   {{.Type}}   {{.Tag}}    // {{.Comment}}     {{end}}
+var (
+	{{.StructName}}Model = new({{.StructName}})
+)
+
+func init() {
+	{{.StructName}}Model.db = orm.Gorm().Table({{.StructName}}Model.Table())
 }
 
-func New{{.StructName}}() *{{.StructName}} {
-    return new({{.StructName}})
+type {{.StructName}} struct {
+	{{gormDB}}														
+															{{range $fieldIndex, $field := .Fields}}
+	{{.Name}}   {{.Type}}   {{.Tag}}    // {{.Comment}}     {{end}}
 }
 
 func (*{{.StructName}}) Table() string {
 	return "{{.TableName}}"
 }
 
-func (table *{{.StructName}}) DB() *gorm.DB {
-	return orm.Gorm().Table(table.Table())
+func (*{{.StructName}}) Insert(table *Interviews) error {
+	return {{.StructName}}Model.db.Create(table).Error
 }
 
-func (table *{{.StructName}}) Insert() error {
-	return table.DB().Create(table).Error
+func (*{{.StructName}}) Deletes(query interface{}, args ...interface{}) error {
+	return {{.StructName}}Model.db.Where(query, args...).Update(map[string]int{"is_deleted": 1}).Error
 }
 
-func (table *{{.StructName}}) Select() error {
-	return table.DB().Where("id = ? AND is_deleted = 0", table.ID).First(table).Error
+func (*{{.StructName}}) Updates(params map[string]interface{}, query interface{}, args ...interface{}) error {
+	return {{.StructName}}Model.db.Where(query, args...).Updates(params).Error
 }
 
-func (table *{{.StructName}}) Update() error {
-	return table.DB().Where("id = ? AND is_deleted = 0", table.ID).Updates(table).Error
+func (*{{.StructName}}) First(query interface{}, args ...interface{}) (*{{.StructName}}, error) {
+	result := new({{.StructName}})
+	err := {{.StructName}}Model.db.Where(query, args...).First(result).Error
+	return result, err
 }
 
-func (table *{{.StructName}}) Delete() error {
-	return table.DB().Where("id = ? AND is_deleted = 0", table.ID).Update(map[string]int{"is_deleted": 1}).Error
-}
-
-func (table *{{.StructName}}) First(query interface{}, args ...interface{}) error {
-	return table.DB().Where(query, args...).First(table).Error
-}
-
-func (table *{{.StructName}}) Selects(query interface{}, args ...interface{}) (*[]{{.StructName}}, error) {
+func (*{{.StructName}}) Selects(query interface{}, args ...interface{}) (*[]{{.StructName}}, error) {
 	list := make([]{{.StructName}}, 0)
-	err := table.DB().Where(query, args...).Find(list).Error
+	err := {{.StructName}}Model.db.Where(query, args...).Find(list).Error
 	return &list, err
 }
 
-func (table *{{.StructName}}) Updates(datas map[string]interface{}, query interface{}, args ...interface{}) error {
-	return table.DB().Where(query, args...).Updates(datas).Error
-}
-
-func (table *{{.StructName}}) Inserts(tables *[]{{.StructName}}) error {
+func (*{{.StructName}}) Inserts(tables *[]{{.StructName}}) error {
 	swg := sync.WaitGroup{}
 	swg.Add(len(*tables))
 	errorchannel := make(chan error, len(*tables))
-	tx := table.DB().Begin()
+	tx := {{.StructName}}Model.db.Begin()
 	defer func() {
 		if err := recover(); err != nil {
 			tx.Rollback()
