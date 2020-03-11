@@ -11,9 +11,7 @@ import (
 	"github.com/CharlesBases/common/log"
 )
 
-var (
-	{{.StructName}}Model = new({{.StructName}})
-)
+var {{.StructName}}Model = new({{.StructName}})
 
 func init() {
 	{{.StructName}}Model.db = DatabaseModel.Table({{.StructName}}Model.Table())

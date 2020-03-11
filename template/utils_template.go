@@ -7,8 +7,6 @@ import (
 	orm "github.com/CharlesBases/common/orm/gorm"
 )
 
-var (
-	DatabaseModel = orm.Gorm()
-)
+var DatabaseModel = orm.Gorm()
 
 `
