@@ -9,7 +9,6 @@ import (
 	{{imports}}
 	"github.com/jinzhu/gorm"
 	"github.com/CharlesBases/common/log"
-	orm "github.com/CharlesBases/common/orm/gorm"
 )
 
 var (
@@ -17,13 +16,22 @@ var (
 )
 
 func init() {
-	{{.StructName}}Model.db = orm.Gorm().Table({{.StructName}}Model.Table())
+	{{.StructName}}Model.db = DatabaseModel.Table({{.StructName}}Model.Table())
 }
 
 type {{.StructName}} struct {
 	{{gormDB}}														
 															{{range $fieldIndex, $field := .Fields}}
 	{{.Name}}   {{.Type}}   {{.Tag}}    // {{.Comment}}     {{end}}
+}
+
+type result{{.StructName}} struct {
+	Error   error
+	IsExist bool
+	Count   int
+
+	Result *{{.StructName}}
+	List   *[]{{.StructName}}
 }
 
 func (*{{.StructName}}) Table() string {

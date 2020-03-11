@@ -117,7 +117,18 @@ func main() {
 		}
 	}
 
-	swg.Add(len(config.Structs))
+	swg.Add(len(config.Structs) + 1)
+
+	// 生成 utils
+	go func() {
+		defer swg.Done()
+
+		structfile := config.create(path.Join(config.PackagePath, "utils.go"))
+		infor := &template.Infor{Config: &config.GlobalConfig}
+		infor.GenUtils(structfile)
+
+		structfile.Close()
+	}()
 
 	// 生成 model
 	for _, Struct := range config.Structs {
