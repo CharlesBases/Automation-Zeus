@@ -23,15 +23,6 @@ type {{.StructName}} struct {
 	{{.Name}}   {{.Type}}   {{.Tag}}    // {{.Comment}}     {{end}}
 }
 
-type result{{.StructName}} struct {
-	Error   error
-	IsExist bool
-	Count   int
-
-	Result *{{.StructName}}
-	List   *[]{{.StructName}}
-}
-
 func (*{{.StructName}}) Table() string {
 	return "{{.TableName}}"
 }
