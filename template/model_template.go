@@ -27,7 +27,7 @@ func (*{{.StructName}}) Table() string {
 	return "{{.TableName}}"
 }
 
-func (*{{.StructName}}) Insert(table *Interviews) error {
+func (*{{.StructName}}) Insert(table *{{.StructName}}) error {
 	return {{.StructName}}Model.db.Create(table).Error
 }
 
