@@ -39,6 +39,10 @@ func (*{{.StructName}}) Updates(params map[string]interface{}, query interface{}
 	return {{.StructName}}Model.db.Where(query, args...).Updates(params).Error
 }
 
+func (*{{.StructName}}) Pluck(resultPoint interface{}, column string, query interface{}, args ...interface{}) error {
+	return {{.StructName}}Model.db.Where(query, args...).Pluck(column, resultPoint).Error
+}
+
 func (*{{.StructName}}) First(query interface{}, args ...interface{}) (*{{.StructName}}, error) {
 	result := new({{.StructName}})
 	err := {{.StructName}}Model.db.Where(query, args...).First(result).Error
@@ -49,6 +53,18 @@ func (*{{.StructName}}) Selects(query interface{}, args ...interface{}) (*[]{{.S
 	list := make([]{{.StructName}}, 0)
 	err := {{.StructName}}Model.db.Where(query, args...).Find(list).Error
 	return &list, err
+}
+
+func (*{{.StructName}}) IsExist(query interface{}, args ...interface{}) (bool, error) {
+	var (
+		count   int
+		isExist bool
+	)
+	err := {{.StructName}}Model.db.Where(query, args...).Count(&count).Error
+	if count != 0 {
+		isExist = true
+	}
+	return isExist, err
 }
 
 func (*{{.StructName}}) Inserts(tables *[]{{.StructName}}) error {
