@@ -51,7 +51,7 @@ func (*{{.StructName}}) First(query interface{}, args ...interface{}) (*{{.Struc
 
 func (*{{.StructName}}) Selects(query interface{}, args ...interface{}) (*[]{{.StructName}}, error) {
 	list := make([]{{.StructName}}, 0)
-	err := {{.StructName}}Model.db.Where(query, args...).Find(list).Error
+	err := {{.StructName}}Model.db.Where(query, args...).Find(&list).Error
 	return &list, err
 }
 
