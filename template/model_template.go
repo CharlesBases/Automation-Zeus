@@ -4,7 +4,6 @@ const modeltemplate = `// this model is generate for table {{.TableName}}
 package {{package}}
 
 import (
-	"fmt"
 	"sync"
 	{{imports}}
 	"github.com/jinzhu/gorm"
@@ -43,28 +42,28 @@ func (*{{.StructName}}) Pluck(resultPoint interface{}, column string, query inte
 	return {{.StructName}}Model.db.Where(query, args...).Pluck(column, resultPoint).Error
 }
 
-func (*{{.StructName}}) First(query interface{}, args ...interface{}) (*{{.StructName}}, error) {
+func (*{{.StructName}}) First(query interface{}, args ...interface{}) (error, *{{.StructName}}) {
 	result := new({{.StructName}})
 	err := {{.StructName}}Model.db.Where(query, args...).First(result).Error
-	return result, err
+	return err, result
 }
 
-func (*{{.StructName}}) Selects(query interface{}, args ...interface{}) (*[]{{.StructName}}, error) {
+func (*{{.StructName}}) Selects(query interface{}, args ...interface{}) (error, *[]{{.StructName}}) {
 	list := make([]{{.StructName}}, 0)
 	err := {{.StructName}}Model.db.Where(query, args...).Find(&list).Error
-	return &list, err
+	return err, &list
 }
 
-func (*{{.StructName}}) IsExist(query interface{}, args ...interface{}) (bool, error) {
+func (*{{.StructName}}) IsExist(query interface{}, args ...interface{}) (error, bool) {
 	var (
-		count   int
+		result  = new({{.StructName}})
 		isExist bool
 	)
-	err := {{.StructName}}Model.db.Where(query, args...).Count(&count).Error
-	if count != 0 {
+	err := {{.StructName}}Model.db.Where(query, args...).First(result).Error
+	if result != nil {
 		isExist = true
 	}
-	return isExist, err
+	return err, isExist
 }
 
 func (*{{.StructName}}) Inserts(tables *[]{{.StructName}}) error {
