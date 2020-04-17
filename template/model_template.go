@@ -82,7 +82,7 @@ func (*{{.StructName}}) Inserts(tables *[]{{.StructName}}) error {
 			defer swg.Done()
 			if err := tx.Create(x).Error; err != nil {
 				errorchannel {{html "<-"}} err
-				log.Errorf(fmt.Sprintf("Inserts %s error: %v", x.Table(), err))
+				log.Errorf("Inserts %s error: %v", x.Table(), err)
 			}
 		}(&table)
 	}
