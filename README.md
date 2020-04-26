@@ -45,12 +45,22 @@
 package model
 
 import (
+	"sync"
 	"time"
-	
-	"github.com/CharlesBases/common/orm/gorm"
+
+	"github.com/CharlesBases/common/log"
+	"github.com/jinzhu/gorm"
 )
 
+var UsersModel = new(Users)
+
+func init() {
+	UsersModel.db = DatabaseModel.Table(UsersModel.Table())
+}
+
 type Users struct {
+	db *gorm.DB `json:"-" gorm:"-"`
+
 	ID              uint      `json:"id" gorm:"column:id;type:int(10) unsigned;not null;primary_key;auto_increment"` // 用户编号
 	Name            string    `json:"name" gorm:"column:name;type:varchar(40);not null"`                             // 用户名
 	Pwd             string    `json:"pwd" gorm:"column:pwd;type:varchar(200);not null"`                              // 密码
@@ -61,25 +71,72 @@ func (*Users) Table() string {
 	return "users"
 }
 
-func (table *Users) Insert() error {
-	return gorm.DB.Table(table.Table()).Create(table).Error
+func (*Users) Insert(table *Users) error {
+	return UsersModel.db.Create(table).Error
 }
 
-func (table *Users) Select() error {
-	return gorm.DB.Table(table.Table()).Where("id = ? AND is_deleted = 0", table.ID).First(table).Error
+func (*Users) Deletes(query interface{}, args ...interface{}) error {
+	return UsersModel.db.Where(query, args...).Update(map[string]int{"is_deleted": 1}).Error
 }
 
-// field defaults will not be updated
-func (table *Users) Update() error {
-	return gorm.DB.Table(table.Table()).Where("id = ? AND is_deleted = 0", table.ID).Updates(table).Error
+func (*Users) Updates(params map[string]interface{}, query interface{}, args ...interface{}) error {
+	return UsersModel.db.Where(query, args...).Updates(params).Error
 }
 
-func (table *Users) Delete() error {
-	return gorm.DB.Table(table.Table()).Where("id = ? AND is_deleted = 0", table.ID).Update(map[string]int{"is_deleted": 1}).Error
+func (*Users) Pluck(resultPoint interface{}, column string, query interface{}, args ...interface{}) error {
+	return UsersModel.db.Where(query, args...).Pluck(column, resultPoint).Error
 }
 
-// update the value of the given field
-func (table *Users) Save(value map[string]interface{}) error {
-	return gorm.DB.Table(table.Table()).Where("id = ? AND is_deleted = 0", table.ID).Save(value).Error
+func (*Users) First(query interface{}, args ...interface{}) (error, *Users) {
+	result := new(Users)
+	err := UsersModel.db.Where(query, args...).First(result).Error
+	return err, result
 }
+
+func (*Users) Selects(query interface{}, args ...interface{}) (error, *[]Users) {
+	list := make([]Users, 0)
+	err := UsersModel.db.Where(query, args...).Find(&list).Error
+	return err, &list
+}
+
+func (*Users) IsExist(query interface{}, args ...interface{}) (error, bool) {
+	var (
+		result  = new(Users)
+		isExist bool
+	)
+	err := UsersModel.db.Where(query, args...).First(result).Error
+	if result != nil {
+		isExist = true
+	}
+	return err, isExist
+}
+
+func (*Users) Inserts(tables *[]Users) error {
+	swg := sync.WaitGroup{}
+	swg.Add(len(*tables))
+	errorchannel := make(chan error, len(*tables))
+	tx := UsersModel.db.Begin()
+	defer func() {
+		if err := recover(); err != nil {
+			tx.Rollback()
+		}
+	}()
+	for _, table := range *tables {
+		go func(x *Users) {
+			defer swg.Done()
+			if err := tx.Create(x).Error; err != nil {
+				errorchannel <- err
+				log.Errorf("Inserts %s error: %v", x.Table(), err)
+			}
+		}(&table)
+	}
+	swg.Wait()
+	close(errorchannel)
+	for err := range errorchannel {
+		tx.Rollback()
+		return err
+	}
+	return tx.Commit().Error
+}
+
 ```
