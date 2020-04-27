@@ -76,14 +76,14 @@ func (*{{.StructName}}) Inserts(tables *[]{{.StructName}}) error {
 			tx.Rollback()
 		}
 	}()
-	for _, table := range *tables {
+	for index := range *tables {
 		go func(x *{{.StructName}}) {
 			defer swg.Done()
 			if err := tx.Create(x).Error; err != nil {
 				errorchannel {{html "<-"}} err
 				log.Errorf("Inserts %s error: %v", x.Table(), err)
 			}
-		}(&table)
+		}(&(*table)[index])
 	}
 	swg.Wait()
 	close(errorchannel)
