@@ -112,9 +112,9 @@ func (config *GlobalConfig) parseTag(tf *TableField) template.HTML {
 		builder.WriteString("`")
 		if config.Json {
 			// aaBbCc
-			// builder.WriteString(fmt.Sprintf(`json:"%s"`, camel(snake(tf.Name))))
+			builder.WriteString(fmt.Sprintf(`json:"%s"`, camel(snake(tf.Name))))
 			// aa_bb_cc
-			builder.WriteString(fmt.Sprintf(`json:"%s"`, tf.Name))
+			// builder.WriteString(fmt.Sprintf(`json:"%s"`, tf.Name))
 		}
 		if config.Gorm {
 			if config.Json {
