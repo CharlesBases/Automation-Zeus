@@ -55,16 +55,16 @@ func main() {
 	swg := sync.WaitGroup{}
 	swg.Add(4)
 
-	databasechannel := make(chan int64, 2)
-	tableschannel := make(chan int64)
+	databasechannel := make(chan struct{}, 2)
+	tableschannel := make(chan struct{})
 
 	// 连接数据库
 	go func() {
 		defer swg.Done()
 
 		config.Database.InitMysql()
-		databasechannel <- time.Now().UnixNano()
-		databasechannel <- time.Now().UnixNano()
+		databasechannel <- struct{}{}
+		databasechannel <- struct{}{}
 	}()
 
 	// 获取数据库下所有表列表，以 order by table_name 排序
@@ -74,7 +74,7 @@ func main() {
 		<-databasechannel
 		config.GetTable()
 
-		tableschannel <- time.Now().UnixNano()
+		tableschannel <- struct{}{}
 	}()
 
 	// 解析已有结构体
