@@ -121,14 +121,14 @@ func (*Users) Inserts(tables *[]Users) error {
 			tx.Rollback()
 		}
 	}()
-	for _, table := range *tables {
-		go func(x *Users) {
+	for index := range *tables {
+		go func(x *User) {
 			defer swg.Done()
 			if err := tx.Create(x).Error; err != nil {
 				errorchannel <- err
 				log.Errorf("Inserts %s error: %v", x.Table(), err)
 			}
-		}(&table)
+		}(&(*table)[index])
 	}
 	swg.Wait()
 	close(errorchannel)
