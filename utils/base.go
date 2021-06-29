@@ -38,11 +38,10 @@ var mysqltype = map[string]string{
 }
 
 type GlobalConfig struct {
-	Package     string            // 生成结构体文件包名
-	PackagePath string            // 生成结构体文件包路径
-	Database    Database          //
-	Structs     []*Struct         // 结构体
-	Imports     map[string]string // import      [导入路径]:调用
+	Package     string    // 生成结构体文件包名
+	PackagePath string    // 生成结构体文件包路径
+	Database    Database  //
+	Structs     []*Struct // 结构体
 	Update      bool
 	Json        bool
 	Gorm        bool
@@ -77,4 +76,14 @@ type StructField struct {
 	Type    string        // 类型
 	Tag     template.HTML // 标签
 	Comment string        // 注释
+}
+
+// Config .
+type Config struct {
+	Addr    string   `toml:"addr"`
+	Tables  []string `toml:"tables"`
+	GenPath string   `toml:"path"`
+	Update  bool     `toml:"update"`
+	JsonTag bool     `toml:"json_tag"`
+	GormTag bool     `toml:"gorm_tag"`
 }

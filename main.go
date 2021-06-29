@@ -11,8 +11,8 @@ import (
 	"sync"
 	"time"
 
-	"CharlesBases/Automation-Zeus/template"
-	"CharlesBases/Automation-Zeus/utils"
+	"CharlesBases/mysql-gen-go/generate"
+	"CharlesBases/mysql-gen-go/utils"
 )
 
 type Config struct {
@@ -20,18 +20,17 @@ type Config struct {
 }
 
 var (
-	db      = flag.String("d", "root:password@tcp(127.0.0.1:3306)/mysql", `database`)
-	table   = flag.String("t", "", `table.multiple files are divided by ","`)
-	genPath = flag.String("p", ".", `generate file path`)
-	update  = flag.Bool("u", false, `update struct`)
-	json    = flag.Bool("j", true, `json tag`)
-	gorm    = flag.Bool("g", true, `gorm tag`)
+	file = flag.String("f", "./reverse.toml", "config file")
 )
+
+var toml *utils.Config
 
 func main() {
 	flag.Parse()
 
-	abspath, _ := filepath.Abs(*genPath)
+	toml = utils.ParseConfig(*file)
+
+	abspath, _ := filepath.Abs(toml.GenPath)
 
 	os.MkdirAll(abspath, 0755)
 
@@ -40,15 +39,14 @@ func main() {
 			Package:     filepath.Base(abspath),
 			PackagePath: abspath,
 			Database: utils.Database{
-				IP:     *db + "?charset=utf8mb4&sql_notes=false&sql_notes=false&timeout=90s&collation=utf8mb4_general_ci&parseTime=True&loc=Local",
-				Schema: parse_schema(*db),
+				IP:     toml.Addr + "?charset=utf8mb4&sql_notes=false&sql_notes=false&timeout=90s&collation=utf8mb4_general_ci&parseTime=True&loc=Local",
+				Schema: parse_schema(toml.Addr),
 				Tables: make(map[string]*[]utils.TableField),
 			},
 			Structs: make([]*utils.Struct, 0),
-			Imports: make(map[string]string, 0),
-			Update:  *update,
-			Json:    *json,
-			Gorm:    *gorm,
+			Update:  toml.Update,
+			Json:    toml.JsonTag,
+			Gorm:    toml.GormTag,
 		},
 	}
 
@@ -92,8 +90,8 @@ func main() {
 		<-tableschannel
 
 		if !config.Update {
-			if len(*table) != 0 {
-				for _, val := range strings.Split(*table, ",") {
+			if len(toml.Tables) != 0 {
+				for _, val := range toml.Tables {
 					config.Database.Tables[val] = &[]utils.TableField{}
 				}
 			} else {
@@ -117,33 +115,13 @@ func main() {
 		}
 	}
 
-	swg.Add(len(config.Structs) + 1)
-
-	// 生成 utils
-	go func() {
-		defer swg.Done()
-
-		structfile := config.create(path.Join(config.PackagePath, "utils.go"))
-		infor := &template.Infor{Config: &config.GlobalConfig}
-		infor.GenUtils(structfile)
-
-		structfile.Close()
-	}()
-
 	// 生成 model
-	for _, Struct := range config.Structs {
-		go func(x *utils.Struct) {
-			defer swg.Done()
-
-			structfile := config.create(path.Join(config.PackagePath, fmt.Sprintf("%s.go", x.TableName)))
-			infor := &template.Infor{Config: &config.GlobalConfig, Struct: x}
-			infor.GenModel(structfile)
-
-			structfile.Close()
-		}(Struct)
+	for _, x := range config.Structs {
+		structfile := config.create(path.Join(config.PackagePath, fmt.Sprintf("%s.go", x.TableName)))
+		infor := &generate.Infor{Config: &config.GlobalConfig, Struct: x}
+		infor.GenModel(structfile)
+		structfile.Close()
 	}
-
-	swg.Wait()
 
 	config.gofmt()
 

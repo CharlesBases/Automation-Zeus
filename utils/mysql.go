@@ -13,6 +13,7 @@ var (
 	DB *gorm.DB
 )
 
+// InitMysql 连接数据库
 func (database *Database) InitMysql() {
 	db, err := gorm.Open("mysql", database.IP)
 	if err != nil {
@@ -33,7 +34,7 @@ func (database *Database) InitMysql() {
 	fmt.Print(fmt.Sprintf("[%s]------%c[%d;%d;%dmsuccessful connection !%c[0m\n", time.Now().Format("2006-01-02 15:04:05"), 0x1B, 0 /*字体*/, 0 /*背景*/, 35 /*前景*/, 0x1B))
 }
 
-// 获取当前库下所有表名
+// GetTable 获取当前库下所有表名
 func (config *GlobalConfig) GetTable() {
 	tables := make([]string, 0)
 	err := DB.Table(information_columns).
@@ -49,7 +50,7 @@ func (config *GlobalConfig) GetTable() {
 	config.Database.TablesSort = &tables
 }
 
-// 获取表结构
+// GetTable 获取表结构
 func (database *Database) GetTable(table string) {
 	err := DB.Table(information_columns).
 		Select([]string{

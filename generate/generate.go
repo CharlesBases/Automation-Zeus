@@ -1,4 +1,4 @@
-package template
+package generate
 
 import (
 	"fmt"
@@ -7,7 +7,14 @@ import (
 	"os"
 	"strings"
 	"time"
+
+	"CharlesBases/mysql-gen-go/utils"
 )
+
+type Infor struct {
+	Config *utils.GlobalConfig
+	Struct *utils.Struct
+}
 
 func (infor *Infor) GenModel(wr io.Writer) {
 	temp := template.New(infor.Struct.StructName)
@@ -17,8 +24,10 @@ func (infor *Infor) GenModel(wr io.Writer) {
 		},
 		"imports": func() template.HTML {
 			importsbuilder := strings.Builder{}
-			for key := range infor.Config.Imports {
-				importsbuilder.WriteString(fmt.Sprintf("%s\n\t", key))
+			for _, field := range *infor.Struct.Fields {
+				if strings.HasSuffix(field.Type, "time.Time") {
+					importsbuilder.WriteString(fmt.Sprintf("%s\n\t", `"time"`))
+				}
 			}
 			return template.HTML(importsbuilder.String())
 		},

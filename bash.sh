@@ -2,7 +2,7 @@
 
 set -e
 
-name=db
+name=reverse
 
 go build main.go
 

@@ -1,0 +1,8 @@
+# 数据库地址
+addr="root:password@tcp(127.0.0.1:3306)/mysql"
+# model 生成路径
+path="./models"
+# json tag
+json_tag=true
+# grom tag
+gorm_tag=true
