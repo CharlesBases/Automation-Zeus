@@ -27,12 +27,6 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
-var UsersModel = new(Users)
-
-func init() {
-	UsersModel.db = DatabaseModel.Table(UsersModel.Table())
-}
-
 // Users 用户
 type Users struct {
 	db *gorm.DB `json:"-" gorm:"-"`

@@ -1,8 +1,4 @@
 # 数据库地址
-addr="root:password@tcp(127.0.0.1:3306)/mysql"
+addr="root:123456@tcp(192.168.1.5:3306)/yunsang"
 # model 生成路径
-path="./models"
-# json tag
-json_tag=true
-# grom tag
-gorm_tag=true
+path="models"
