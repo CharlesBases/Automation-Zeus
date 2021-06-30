@@ -2,7 +2,10 @@ package utils
 
 import "html/template"
 
-const information_columns = "information_schema.COLUMNS"
+const (
+	information_tables  = "information_schema.TABLES"
+	information_columns = "information_schema.COLUMNS"
+)
 
 var mysqltype = map[string]string{
 	"int":        "int",
@@ -38,13 +41,11 @@ var mysqltype = map[string]string{
 }
 
 type GlobalConfig struct {
-	Package     string    // 生成结构体文件包名
-	PackagePath string    // 生成结构体文件包路径
-	Database    Database  //
-	Structs     []*Struct // 结构体
-	Update      bool
-	Json        bool
-	Gorm        bool
+	Package     string            // 生成结构体文件包名
+	PackagePath string            // 生成结构体文件包路径
+	Database    Database          //
+	Structs     []*Struct         // 结构体
+	Imports     map[string]string // import      [导入路径]:调用
 }
 
 type Database struct {
@@ -52,6 +53,11 @@ type Database struct {
 	Schema     string
 	Tables     map[string]*[]TableField // 实际需要输出的表
 	TablesSort *[]string                // 数据库下所有表列表
+}
+
+type Table struct {
+	Name    string `gorm:"column:TABLE_NAME"`    // 表名
+	Comment string `gorm:"column:TABLE_COMMENT"` // 表注释
 }
 
 type TableField struct {
@@ -67,7 +73,7 @@ type TableField struct {
 
 type Struct struct {
 	StructName string
-	TableName  string
+	Table      *Table
 	Fields     *[]StructField
 }
 
@@ -80,10 +86,6 @@ type StructField struct {
 
 // Config .
 type Config struct {
-	Addr    string   `toml:"addr"`
-	Tables  []string `toml:"tables"`
-	GenPath string   `toml:"path"`
-	Update  bool     `toml:"update"`
-	JsonTag bool     `toml:"json_tag"`
-	GormTag bool     `toml:"gorm_tag"`
+	Addr    string `toml:"addr"`
+	GenPath string `toml:"path"`
 }

@@ -12,22 +12,20 @@ import (
 )
 
 type Infor struct {
-	Config *utils.GlobalConfig
-	Struct *utils.Struct
+	Config  *utils.GlobalConfig
+	Structs []*utils.Struct
 }
 
 func (infor *Infor) GenModel(wr io.Writer) {
-	temp := template.New(infor.Struct.StructName)
+	temp := template.New(infor.Config.Database.Schema)
 	temp.Funcs(template.FuncMap{
 		"package": func() string {
 			return infor.Config.Package
 		},
 		"imports": func() template.HTML {
 			importsbuilder := strings.Builder{}
-			for _, field := range *infor.Struct.Fields {
-				if strings.HasSuffix(field.Type, "time.Time") {
-					importsbuilder.WriteString(fmt.Sprintf("%s\n\t", `"time"`))
-				}
+			for key := range infor.Config.Imports {
+				importsbuilder.WriteString(fmt.Sprintf("%s\n\t", key))
 			}
 			return template.HTML(importsbuilder.String())
 		},
@@ -45,5 +43,5 @@ func (infor *Infor) GenModel(wr io.Writer) {
 		fmt.Print(fmt.Sprintf("[%s]----------%c[%d;%d;%dmgen model error: %s%c[0m\n", time.Now().Format("2006-01-02 15:04:05"), 0x1B, 0 /*字体*/, 0 /*背景*/, 31 /*前景*/, err.Error(), 0x1B))
 		os.Exit(1)
 	}
-	modelTemplate.Execute(wr, infor.Struct)
+	modelTemplate.Execute(wr, infor)
 }

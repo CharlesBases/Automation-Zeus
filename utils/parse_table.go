@@ -6,6 +6,7 @@ import (
 	"strings"
 )
 
+// ParseTable 解析表字段
 func (config *GlobalConfig) ParseTable(fields *[]TableField) {
 	if len(*fields) != 0 {
 		isParse := true
@@ -17,8 +18,12 @@ func (config *GlobalConfig) ParseTable(fields *[]TableField) {
 		}
 		for key, field := range *fields {
 			if isParse {
-				Struct.StructName = snake(field.TableName)
-				Struct.TableName = field.TableName
+				Struct.Table = config.Database.GetTable(field.TableName)
+
+				Struct.StructName = snake(Struct.Table.Name)
+				if Struct.Table.Comment == "" {
+					Struct.Table.Comment = "."
+				}
 				isParse = false
 			}
 			(*Struct.Fields)[key] = config.parseField(&field)
@@ -27,7 +32,7 @@ func (config *GlobalConfig) ParseTable(fields *[]TableField) {
 	}
 }
 
-// aaa_bbb to AaaBbb
+// snake aaa_bbb to AaaBbb
 func snake(source string) string {
 	builder := strings.Builder{}
 	isHandle := false
@@ -49,7 +54,7 @@ func snake(source string) string {
 	return builder.String()
 }
 
-// AaaBbb to aaa_bbb
+// ensnake AaaBbb to aaa_bbb
 func ensnake(source string) string {
 	builder := strings.Builder{}
 	for key, word := range []rune(source) {
@@ -65,7 +70,7 @@ func ensnake(source string) string {
 	return builder.String()
 }
 
-// AaaBbb to aaaBbb
+// camel AaaBbb to aaaBbb
 func camel(source string) string {
 	builder := strings.Builder{}
 	if source != "ID" {
@@ -84,6 +89,7 @@ func camel(source string) string {
 	return builder.String()
 }
 
+// parseField 解析字段
 func (config *GlobalConfig) parseField(tf *TableField) StructField {
 	return StructField{
 		Name:    snake(tf.Name),
@@ -93,43 +99,50 @@ func (config *GlobalConfig) parseField(tf *TableField) StructField {
 	}
 }
 
+// parseType 解析字段类型
 func (config *GlobalConfig) parseType(tf *TableField) string {
 	builder := strings.Builder{}
 	// if strings.HasSuffix(tf.Column, "unsigned") {
 	// 	builder.WriteString("u")
 	// }
 	gotype := mysqltype[tf.Type]
+	if strings.Contains(gotype, "time.Time") {
+		config.Imports[`"time"`] = ""
+	}
 	builder.WriteString(gotype)
 	return builder.String()
 }
 
+// parseTag 解析字段 tag. 包含 json tag 和 orm tag
 func (config *GlobalConfig) parseTag(tf *TableField) template.HTML {
 	builder := strings.Builder{}
-	if config.Json || config.Gorm {
-		builder.WriteString("`")
-		if config.Json {
-			// aaBbCc
-			// builder.WriteString(fmt.Sprintf(`json:"%s"`, camel(snake(tf.Name))))
-			// aa_bb_cc
-			builder.WriteString(fmt.Sprintf(`json:"%s"`, tf.Name))
-		}
-		if config.Gorm {
-			if config.Json {
-				builder.WriteString(" ")
-			}
-			builder.WriteString(fmt.Sprintf(`gorm:"column:%s;type:%s`, tf.Name, tf.Column))
-			if tf.IsNull == "NO" {
-				builder.WriteString(";not null")
-			}
-			if tf.Primary == "PRI" {
-				builder.WriteString(";primary_key")
-			}
-			if tf.Extra == "auto_increment" {
-				builder.WriteString(";auto_increment")
-			}
-			builder.WriteString(`"`)
-		}
-		builder.WriteString("`")
+	builder.WriteString("`")
+
+	// json tag
+	{
+		// aaBbCc
+		// builder.WriteString(fmt.Sprintf(`json:"%s"`, camel(snake(tf.Name))))
+		// aa_bb_cc
+		builder.WriteString(fmt.Sprintf(`json:"%s"`, tf.Name))
 	}
+
+	builder.WriteString(" ")
+
+	// orm tag
+	{
+		builder.WriteString(fmt.Sprintf(`gorm:"column:%s;type:%s`, tf.Name, tf.Column))
+		if tf.IsNull == "NO" {
+			builder.WriteString(";not null")
+		}
+		if tf.Primary == "PRI" {
+			builder.WriteString(";primary_key")
+		}
+		if tf.Extra == "auto_increment" {
+			builder.WriteString(";auto_increment")
+		}
+		builder.WriteString(`"`)
+	}
+
+	builder.WriteString("`")
 	return template.HTML(builder.String())
 }

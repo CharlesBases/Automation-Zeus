@@ -1,6 +1,6 @@
 package generate
 
-const modeltemplate = `// Package {{package}} this model is generate from table {{.TableName}}
+const modeltemplate = `// Package {{package}} this model is generate from schema {{.Config.Database.Schema}}
 package {{package}}
 
 import (
@@ -8,14 +8,18 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
+{{range .Structs}}
+// {{.StructName}} {{.Table.Comment}}
 type {{.StructName}} struct {
 	{{gormDB}}														
 															{{range $fieldIndex, $field := .Fields}}
 	{{.Name}}   {{.Type}}   {{.Tag}}    // {{.Comment}}     {{end}}
 }
 
-func (*{{.StructName}}) Table() string {
-	return "{{.TableName}}"
+func (*{{.StructName}}) TableName() string {
+	return "{{.Table.Name}}"
 }
+
+{{end}}
 
 `

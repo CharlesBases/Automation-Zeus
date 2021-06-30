@@ -8,7 +8,6 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
-	"sync"
 	"time"
 
 	"CharlesBases/mysql-gen-go/generate"
@@ -44,65 +43,15 @@ func main() {
 				Tables: make(map[string]*[]utils.TableField),
 			},
 			Structs: make([]*utils.Struct, 0),
-			Update:  toml.Update,
-			Json:    toml.JsonTag,
-			Gorm:    toml.GormTag,
+			Imports: make(map[string]string, 0),
 		},
 	}
 
-	swg := sync.WaitGroup{}
-	swg.Add(4)
-
-	databasechannel := make(chan struct{}, 2)
-	tableschannel := make(chan struct{})
-
 	// 连接数据库
-	go func() {
-		defer swg.Done()
-
-		config.Database.InitMysql()
-		databasechannel <- struct{}{}
-		databasechannel <- struct{}{}
-	}()
+	config.Database.InitMysql()
 
 	// 获取数据库下所有表列表，以 order by table_name 排序
-	go func() {
-		defer swg.Done()
-
-		<-databasechannel
-		config.GetTable()
-
-		tableschannel <- struct{}{}
-	}()
-
-	// 解析已有结构体
-	go func() {
-		defer swg.Done()
-
-		<-databasechannel
-		config.ParseFile()
-	}()
-
-	// 是否只更新已有结构体
-	go func() {
-		defer swg.Done()
-
-		<-tableschannel
-
-		if !config.Update {
-			if len(toml.Tables) != 0 {
-				for _, val := range toml.Tables {
-					config.Database.Tables[val] = &[]utils.TableField{}
-				}
-			} else {
-				for _, val := range *(config.Database.TablesSort) {
-					config.Database.Tables[val] = &[]utils.TableField{}
-				}
-			}
-		}
-	}()
-
-	swg.Wait()
+	config.GetTables()
 
 	fmt.Print(fmt.Sprintf("[%s]--------%c[%d;%d;%dmparse database: %s%c[0m\n", time.Now().Format("2006-01-02 15:04:05"), 0x1B, 0 /*字体*/, 0 /*背景*/, 36 /*前景*/, config.Database.Schema, 0x1B))
 
@@ -110,18 +59,16 @@ func main() {
 	for _, val := range *config.Database.TablesSort {
 		if _, ok := config.Database.Tables[val]; ok {
 			fmt.Println(fmt.Sprintf(`[%s]----------find table: %s`, time.Now().Format("2006-01-02 15:04:05"), val))
-			config.Database.GetTable(val)
+			config.Database.GetTableFields(val)
 			config.ParseTable(config.Database.Tables[val])
 		}
 	}
 
 	// 生成 model
-	for _, x := range config.Structs {
-		structfile := config.create(path.Join(config.PackagePath, fmt.Sprintf("%s.go", x.TableName)))
-		infor := &generate.Infor{Config: &config.GlobalConfig, Struct: x}
-		infor.GenModel(structfile)
-		structfile.Close()
-	}
+	structfile := config.create(path.Join(config.PackagePath, "models.go"))
+	infor := &generate.Infor{Config: &config.GlobalConfig, Structs: config.Structs}
+	infor.GenModel(structfile)
+	structfile.Close()
 
 	config.gofmt()
 
