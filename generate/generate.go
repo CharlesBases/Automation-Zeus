@@ -24,11 +24,16 @@ func (infor *Infor) GenModel(wr io.Writer) {
 			return infor.Config.Package
 		},
 		"imports": func() template.HTML {
-			importsbuilder := strings.Builder{}
-			for key := range infor.Config.Imports {
-				importsbuilder.WriteString(fmt.Sprintf("%s\n\t", key))
+			if len(infor.Config.Imports) != 0 {
+				importsbuilder := strings.Builder{}
+				importsbuilder.WriteString("import (\n")
+				for key := range infor.Config.Imports {
+					importsbuilder.WriteString(fmt.Sprintf("\t%s\n", key))
+				}
+				importsbuilder.WriteString(")")
+				return template.HTML(importsbuilder.String())
 			}
-			return template.HTML(importsbuilder.String())
+			return ""
 		},
 		"html": func(source string) template.HTML {
 			return template.HTML(source)

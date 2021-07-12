@@ -1,18 +1,13 @@
 package generate
 
-const DefaultTemplate = `// Package {{package}} this models is generated from {{.Config.Database.Schema}}
+const DefaultTemplate = `// Package {{package}} this models generated from {{.Config.Database.Schema}}. DO NOT EDIT.
 package {{package}}
 
-import (
-	{{imports}}
-	"github.com/jinzhu/gorm"
-)
-
+{{imports}}
 {{range .Structs}}
 // {{.StructName}} {{.Table.Comment}}
 type {{.StructName}} struct {
-	{{gormDB}}														
-															{{range $fieldIndex, $field := .Fields}}
+    {{range $fieldIndex, $field := .Fields}}
 	{{.Name}}   {{.Type}}   {{.Tag}}    // {{.Comment}}     {{end}}
 }
 

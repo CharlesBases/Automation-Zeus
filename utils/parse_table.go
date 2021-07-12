@@ -35,20 +35,19 @@ func (config *GlobalConfig) ParseTable(fields *[]TableField) {
 // snake aaa_bbb to AaaBbb
 func snake(source string) string {
 	builder := strings.Builder{}
-	isHandle := false
 	for _, word := range strings.Split(source, "_") {
-		isHandle = true
-		if word != "id" {
-			for _, letter := range []rune(word) {
-				if isHandle {
+		switch word {
+		case "id", "uuid":
+			builder.WriteString(strings.ToUpper(word))
+		default:
+			for index, letter := range []rune(word) {
+				if index == 0 {
+					// 首单词大写
 					builder.WriteString(strings.ToUpper(string(letter)))
-					isHandle = false
 				} else {
 					builder.WriteString(string(letter))
 				}
 			}
-		} else {
-			builder.WriteString(strings.ToUpper(word))
 		}
 	}
 	return builder.String()
