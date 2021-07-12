@@ -1,11 +1,11 @@
 package utils
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"sync"
-	"time"
+
+	"mysql-gen-go/logger"
 
 	"github.com/BurntSushi/toml"
 )
@@ -18,11 +18,11 @@ func ParseConfig(path string) *Config {
 	once.Do(func() {
 		filePath, err := filepath.Abs(path)
 		if err != nil {
-			fmt.Print(fmt.Sprintf("[%s]------%c[%d;%d;%dmparse toml error: %s%c[0m\n", time.Now().Format("2006-01-02 15:04:05"), 0x1B, 0 /*字体*/, 0 /*背景*/, 31 /*前景*/, err.Error(), 0x1B))
+			logger.Error("parse toml error: %v", err)
 			os.Exit(0)
 		}
 		if _, err := toml.DecodeFile(filePath, config); err != nil {
-			fmt.Print(fmt.Sprintf("[%s]------%c[%d;%d;%dmparse toml error:: %s%c[0m\n", time.Now().Format("2006-01-02 15:04:05"), 0x1B, 0 /*字体*/, 0 /*背景*/, 31 /*前景*/, err.Error(), 0x1B))
+			logger.Error("parse toml error: %v", err)
 			os.Exit(0)
 		}
 	})

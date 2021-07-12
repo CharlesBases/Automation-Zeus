@@ -43,7 +43,7 @@ var mysqltype = map[string]string{
 type GlobalConfig struct {
 	Package     string            // 生成结构体文件包名
 	PackagePath string            // 生成结构体文件包路径
-	Database    Database          //
+	Database    *Database         //
 	Structs     []*Struct         // 结构体
 	Imports     map[string]string // import      [导入路径]:调用
 }
@@ -86,6 +86,7 @@ type StructField struct {
 
 // Config .
 type Config struct {
-	Addr    string `toml:"addr"`
-	GenPath string `toml:"path"`
+	Addr     string `toml:"addr"`
+	GenPath  string `toml:"path"`
+	Template string `toml:"template"`
 }

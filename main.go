@@ -8,10 +8,10 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
-	"time"
 
-	"CharlesBases/mysql-gen-go/generate"
-	"CharlesBases/mysql-gen-go/utils"
+	"mysql-gen-go/generate"
+	"mysql-gen-go/logger"
+	"mysql-gen-go/utils"
 )
 
 type Config struct {
@@ -37,8 +37,8 @@ func main() {
 		GlobalConfig: utils.GlobalConfig{
 			Package:     filepath.Base(abspath),
 			PackagePath: abspath,
-			Database: utils.Database{
-				IP:     toml.Addr + "?charset=utf8mb4&sql_notes=false&sql_notes=false&timeout=90s&collation=utf8mb4_general_ci&parseTime=True&loc=Local",
+			Database: &utils.Database{
+				IP:     toml.Addr + "?charset=utf8mb4&sql_notes=false&sql_notes=false&timeout=60s&collation=utf8mb4_general_ci&parseTime=True&loc=Local",
 				Schema: parse_schema(toml.Addr),
 				Tables: make(map[string]*[]utils.TableField),
 			},
@@ -53,26 +53,35 @@ func main() {
 	// 获取数据库下所有表列表，以 order by table_name 排序
 	config.GetTables()
 
-	fmt.Print(fmt.Sprintf("[%s]--------%c[%d;%d;%dmparse database: %s%c[0m\n", time.Now().Format("2006-01-02 15:04:05"), 0x1B, 0 /*字体*/, 0 /*背景*/, 36 /*前景*/, config.Database.Schema, 0x1B))
+	logger.Infor("parse database: %s", config.Database.Schema)
 
 	// 获取表结构
-	for _, val := range *config.Database.TablesSort {
-		if _, ok := config.Database.Tables[val]; ok {
-			fmt.Println(fmt.Sprintf(`[%s]----------find table: %s`, time.Now().Format("2006-01-02 15:04:05"), val))
-			config.Database.GetTableFields(val)
-			config.ParseTable(config.Database.Tables[val])
+	for _, table := range *config.Database.TablesSort {
+		if _, ok := config.Database.Tables[table]; ok {
+			logger.Debug("find table: %s", table)
+			config.Database.GetTableFields(table)
+			config.ParseTable(config.Database.Tables[table])
 		}
 	}
 
 	// 生成 model
 	structfile := config.create(path.Join(config.PackagePath, "models.go"))
-	infor := &generate.Infor{Config: &config.GlobalConfig, Structs: config.Structs}
+	infor := &generate.Infor{
+		Config:  &config.GlobalConfig,
+		Structs: config.Structs,
+		Template: func() string {
+			if toml.Template != "" {
+				return toml.Template
+			}
+			return generate.DefaultTemplate
+		}(),
+	}
 	infor.GenModel(structfile)
 	structfile.Close()
 
 	config.gofmt()
 
-	fmt.Print(fmt.Sprintf("[%s]------%c[%d;%d;%dmcomplete !%c[0m\n", time.Now().Format("2006-01-02 15:04:05"), 0x1B, 0 /*字体*/, 0 /*背景*/, 35 /*前景*/, 0x1B))
+	logger.Infor("complete !")
 }
 
 // 获取数据库名
@@ -87,9 +96,9 @@ func parse_schema(ip string) (schema string) {
 func (config *Config) create(filepath string) *os.File {
 	os.RemoveAll(path.Join(config.PackagePath, fmt.Sprintf("%s.go", filepath)))
 
-	fmt.Print(fmt.Sprintf("[%s]--------%c[%d;%d;%dmcreate model file %s...%c[0m\n", time.Now().Format("2006-01-02 15:04:05"), 0x1B, 0 /*字体*/, 0 /*背景*/, 36 /*前景*/, path.Base(filepath), 0x1B))
+	logger.Infor("creating file[%s]...", path.Base(filepath))
 	if file, err := os.OpenFile(filepath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0755); err != nil {
-		fmt.Print(fmt.Sprintf("[%s]--------%c[%d;%d;%dmopen file error: %s%c[0m\n", time.Now().Format("2006-01-02 15:04:05"), 0x1B, 0 /*字体*/, 0 /*背景*/, 31 /*前景*/, err.Error(), 0x1B))
+		logger.Error("open file error: %v", err)
 		os.Exit(1)
 	} else {
 		return file
@@ -101,7 +110,7 @@ func (config *Config) gofmt() {
 	cmd := exec.Command("gofmt", "-l", "-w", "-s", config.PackagePath)
 	err := cmd.Run()
 	if err != nil {
-		fmt.Print(fmt.Sprintf("[%s]------%c[%d;%d;%dmgofmt error: %s%c[0m\n", time.Now().Format("2006-01-02 15:04:05"), 0x1B, 0 /*字体*/, 0 /*背景*/, 31 /*前景*/, err.Error(), 0x1B))
+		logger.Error("gofmt error: %v", err)
 		os.Exit(1)
 	}
 }

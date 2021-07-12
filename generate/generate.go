@@ -6,14 +6,15 @@ import (
 	"io"
 	"os"
 	"strings"
-	"time"
 
-	"CharlesBases/mysql-gen-go/utils"
+	"mysql-gen-go/logger"
+	"mysql-gen-go/utils"
 )
 
 type Infor struct {
-	Config  *utils.GlobalConfig
-	Structs []*utils.Struct
+	Config   *utils.GlobalConfig
+	Structs  []*utils.Struct
+	Template string
 }
 
 func (infor *Infor) GenModel(wr io.Writer) {
@@ -38,9 +39,9 @@ func (infor *Infor) GenModel(wr io.Writer) {
 			return template.HTML(strBuilder.String())
 		},
 	})
-	modelTemplate, err := temp.Parse(modeltemplate)
+	modelTemplate, err := temp.Parse(infor.Template)
 	if err != nil {
-		fmt.Print(fmt.Sprintf("[%s]----------%c[%d;%d;%dmgen model error: %s%c[0m\n", time.Now().Format("2006-01-02 15:04:05"), 0x1B, 0 /*字体*/, 0 /*背景*/, 31 /*前景*/, err.Error(), 0x1B))
+		logger.Error("generate model error: %v", err)
 		os.Exit(1)
 	}
 	modelTemplate.Execute(wr, infor)

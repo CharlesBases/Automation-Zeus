@@ -1,4 +1,30 @@
 # 数据库地址
 addr="root:123456@tcp(192.168.1.5:3306)/yunsang"
+
 # model 生成路径
 path="models"
+
+# model 生成模板
+template="""
+// Package {{package}} this models is generated from {{.Config.Database.Schema}}. DO NOT EDIT.
+package {{package}}
+
+import (
+	{{imports}}
+	"gorm.io/gorm"
+)
+
+{{range .Structs}}
+// {{.StructName}} {{.Table.Comment}}
+type {{.StructName}} struct {
+	{{gormDB}}
+															{{range $fieldIndex, $field := .Fields}}
+	{{.Name}}   {{.Type}}   {{.Tag}}    // {{.Comment}}     {{end}}
+}
+
+func (*{{.StructName}}) TableName() string {
+	return "{{.Table.Name}}"
+}
+
+{{end}}
+"""

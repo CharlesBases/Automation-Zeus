@@ -1,6 +1,6 @@
 package generate
 
-const modeltemplate = `// Package {{package}} this models is generated from {{.Config.Database.Schema}}
+const DefaultTemplate = `// Package {{package}} this models is generated from {{.Config.Database.Schema}}
 package {{package}}
 
 import (
